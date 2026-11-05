@@ -1,0 +1,752 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens — Papillion Painters
+ * Palette is named like a paint fan deck: every color is a "chip".
+ * Single light register site-wide; the dark "Night Charcoal" register is reserved
+ * for one moment (the search-proof reveal on /how-to-get-painting-leads).
+ */
+
+@theme {
+  /* ---------- Color: neutrals (cool, primer-grey; no cream) ---------- */
+  --color-primer: #ecedf0; /* page background, cool grey-white */
+  --color-primer-deep: #e1e3e8; /* alternate section band */
+  --color-chalk: #ffffff; /* cards, form fields */
+  --color-ink: #141a2e; /* primary text: navy-black */
+  --color-graphite: #4a5063; /* secondary text */
+  --color-line: #cdd0d8; /* hairlines, borders */
+
+  /* ---------- Color: chips (color-block surfaces, white text) ---------- */
+  --color-chip-navy: #1f2a4d; /* "Platte Navy"   - homeowners, primary block */
+  --color-chip-forest: #2f5b46; /* "Prairie Green" - exterior */
+  --color-chip-plum: #2e1f2e; /* "Dusk Plum"     - interior */
+  --color-chip-charcoal: #1d1b20; /* "Night Charcoal" - painters / B2B, dark register */
+
+  /* ---------- Color: the one accent (CTAs, focus, progress) ---------- */
+  --color-tape: #e2a83c; /* "Wet Ochre" - always paired with ink text */
+  --color-tape-hover: #d4982b;
+
+  /* ---------- Type ---------- */
+  /* One variable family (Archivo, wdth 62-125 + wght) for display and body; Plex Mono only for chip codes and labels. */
+  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  --text-display: clamp(2.75rem, 6vw, 6rem);
+  --text-display--line-height: 0.92;
+  --text-display--letter-spacing: -0.03em;
+
+  --text-h1: clamp(2.5rem, 5.6vw + 0.3rem, 6rem);
+  --text-h1--line-height: 0.96;
+  --text-h1--letter-spacing: -0.025em;
+
+  --text-h2: clamp(2rem, 3.4vw + 0.4rem, 3.75rem);
+  --text-h2--line-height: 1.02;
+  --text-h2--letter-spacing: -0.02em;
+
+  --text-h3: clamp(1.375rem, 1.1vw + 1rem, 1.75rem);
+  --text-h3--line-height: 1.15;
+  --text-h3--letter-spacing: -0.01em;
+
+  --text-lead: clamp(1.125rem, 0.5vw + 1rem, 1.375rem);
+  --text-lead--line-height: 1.5;
+
+  --text-body: 1.0625rem;
+  --text-body--line-height: 1.65;
+
+  --text-small: 0.875rem;
+  --text-small--line-height: 1.5;
+
+  --text-label: 0.75rem;
+  --text-label--line-height: 1.2;
+  --text-label--letter-spacing: 0.12em;
+
+  /* ---------- Spacing & layout ---------- */
+  --spacing: 0.25rem; /* 4px base unit */
+  --spacing-gutter: clamp(1rem, 3vw, 3rem); /* 16px mobile → 48px desktop */
+  --spacing-section: clamp(5rem, 11vw, 11rem);
+  --spacing-section-sm: clamp(3.5rem, 7vw, 6.5rem);
+  --container-site: 90rem; /* 1440px */
+  --container-measure: 40rem; /* ~62ch reading width */
+
+  --radius-chip: 0px; /* paint chips are square */
+  --radius-field: 2px;
+  --radius-pill: 999px; /* buttons */
+
+  /* ---------- Motion ----------
+   * One system, mirrored in src/lib/motion/tokens.ts for GSAP.
+   * Two curves: things ARRIVE on ease-out; things CHANGE IN PLACE on ease-in-out.
+   * Four durations, one stagger. Nothing on the site uses any other value. */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-micro: 240ms; /* hover, press, focus, toggles */
+  --dur-ui: 400ms; /* FAQ open, page change, arrows, form states */
+  --dur-reveal: 800ms; /* every arrival: hero lines, scroll reveals, split headings */
+  --dur-draw: 1200ms; /* lines and bars drawing, photo settle, image zoom */
+  --stagger: 80ms;
+  --rise: 20px; /* how far revealed content travels */
+  --default-transition-duration: var(--dur-micro);
+  --default-transition-timing-function: var(--ease-out);
+}
+
+@layer base {
+  html {
+    background: var(--color-primer);
+    color: var(--color-ink);
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    line-height: var(--text-body--line-height);
+    background: var(--color-primer);
+    color: var(--color-ink);
+    text-rendering: optimizeLegibility;
+  }
+  ::selection {
+    background: var(--color-tape);
+    color: var(--color-ink);
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-tape);
+    outline-offset: 3px;
+  }
+}
+
+/* Lenis */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+/* Reduced motion: hard stop for every CSS animation and view transition. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
+    scroll-behavior: auto !important;
+  }
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+  .faq details::details-content,
+  .contact-alt::details-content {
+    transition: none !important;
+  }
+}
+
+/* =====================================================================
+ * Utilities
+ * ===================================================================== */
+@utility wdth-72 {
+  font-variation-settings: "wdth" 72;
+}
+@utility wdth-100 {
+  font-variation-settings: "wdth" 100;
+}
+@utility wdth-104 {
+  font-variation-settings: "wdth" 104;
+}
+@utility wdth-108 {
+  font-variation-settings: "wdth" 108;
+}
+@utility wdth-112 {
+  font-variation-settings: "wdth" 112;
+}
+@utility text-vertical {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+}
+
+:root {
+  interpolate-size: allow-keywords;
+}
+
+@layer base {
+  h1,
+  h2,
+  h3 {
+    font-weight: 600;
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
+  }
+}
+
+@layer components {
+  /* Buttons: pills. Primary is the only fill use of Wet Ochre. */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    min-height: 3.5rem;
+    padding: 1rem 1.75rem;
+    border-radius: var(--radius-pill);
+    font-weight: 600;
+    font-size: 1rem;
+    line-height: 1.2;
+    cursor: pointer;
+    transition:
+      background-color var(--dur-micro) var(--ease-out),
+      color var(--dur-micro) var(--ease-out),
+      box-shadow var(--dur-micro) var(--ease-out);
+  }
+  .btn-primary {
+    background: var(--color-tape);
+    color: var(--color-ink);
+  }
+  .btn-primary:hover {
+    background: var(--color-tape-hover);
+  }
+  .btn-ghost {
+    background: transparent;
+    color: currentColor;
+    box-shadow: inset 0 0 0 1.5px currentColor;
+  }
+  .btn-ghost:hover {
+    background: var(--color-ink);
+    color: var(--color-chalk);
+    box-shadow: inset 0 0 0 1.5px var(--color-ink);
+  }
+  .on-chip .btn-ghost:hover {
+    background: var(--color-chalk);
+    color: var(--color-ink);
+    box-shadow: inset 0 0 0 1.5px var(--color-chalk);
+  }
+  .btn[disabled] {
+    opacity: 0.6;
+    cursor: progress;
+  }
+  .btn .arrow {
+    transition: transform var(--dur-micro) var(--ease-out);
+  }
+  .btn:hover .arrow {
+    transform: translateX(4px);
+  }
+
+  /* Text link: ochre underline drawn left to right. */
+  .tlink {
+    font-weight: 500;
+    text-decoration: none;
+    background-image: linear-gradient(var(--color-tape), var(--color-tape));
+    background-size: 0% 2px;
+    background-repeat: no-repeat;
+    background-position: 0 100%;
+    padding-bottom: 2px;
+    transition: background-size var(--dur-ui) var(--ease-out);
+  }
+  .tlink:hover,
+  .tlink:focus-visible {
+    background-size: 100% 2px;
+  }
+
+  /* Running copy: links stay underlined so they are findable. */
+  .prose-site > * + * {
+    margin-top: 1.25em;
+  }
+  .prose-site h2 {
+    font-size: var(--text-h2);
+    line-height: var(--text-h2--line-height);
+    letter-spacing: var(--text-h2--letter-spacing);
+    font-variation-settings: "wdth" 104;
+    margin-top: 2.5em;
+  }
+  .prose-site h3 {
+    font-size: var(--text-h3);
+    line-height: var(--text-h3--line-height);
+    margin-top: 2em;
+  }
+  .prose-site ul,
+  .prose-site ol {
+    padding-left: 1.25rem;
+  }
+  .prose-site ul {
+    list-style: square;
+  }
+  .prose-site ol {
+    list-style: decimal;
+  }
+  .prose-site li + li {
+    margin-top: 0.5em;
+  }
+  .prose-site li::marker {
+    color: var(--color-graphite);
+  }
+  .prose-site a:not(.btn) {
+    text-decoration: underline;
+    text-decoration-color: var(--color-tape);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
+    font-weight: 500;
+  }
+  .prose-site a:not(.btn):hover {
+    text-decoration-color: currentColor;
+  }
+
+  .label {
+    font-family: var(--font-mono);
+    font-size: var(--text-label);
+    line-height: var(--text-label--line-height);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* Form fields */
+  .field {
+    display: grid;
+    gap: 0.375rem;
+    min-width: 0;
+    align-content: start;
+  }
+  .field-label {
+    font-size: var(--text-small);
+    font-weight: 500;
+  }
+  .input {
+    width: 100%;
+    min-height: 3rem;
+    font: inherit;
+    font-size: 1rem;
+    padding: 0.75rem 0.875rem;
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-field);
+    background: var(--color-chalk);
+    color: var(--color-ink);
+    transition:
+      border-color var(--dur-micro) var(--ease-out),
+      box-shadow var(--dur-micro) var(--ease-out);
+  }
+  .input:focus {
+    outline: none;
+    border-color: var(--color-ink);
+    box-shadow: 0 0 0 3px rgb(226 168 60 / 0.45);
+  }
+  .input[aria-invalid="true"] {
+    border-color: #a3271b;
+  }
+  textarea.input {
+    min-height: 7rem;
+    resize: vertical;
+  }
+  select.input {
+    appearance: none;
+    background-image:
+      linear-gradient(45deg, transparent 50%, var(--color-ink) 50%),
+      linear-gradient(135deg, var(--color-ink) 50%, transparent 50%);
+    background-position:
+      calc(100% - 20px) 55%,
+      calc(100% - 14px) 55%;
+    background-size:
+      6px 6px,
+      6px 6px;
+    background-repeat: no-repeat;
+    padding-right: 2.5rem;
+  }
+  .field-error {
+    font-size: var(--text-small);
+    color: #a3271b;
+  }
+  .on-chip .field-error {
+    color: #ffc9c2;
+  }
+  /* White form cards inside dark sections go back to the dark error color. */
+  .on-chip .bg-chalk .field-error {
+    color: #a3271b;
+  }
+
+  /* Segmented choice (radio/checkbox pills) */
+  .choice {
+    position: relative;
+    display: inline-flex;
+  }
+  .choice input {
+    position: absolute;
+    opacity: 0;
+    inset: 0;
+    margin: 0;
+    cursor: pointer;
+  }
+  .choice span {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-pill);
+    background: var(--color-chalk);
+    color: var(--color-ink);
+    font-size: var(--text-small);
+    font-weight: 500;
+    transition:
+      background-color var(--dur-micro) var(--ease-out),
+      color var(--dur-micro) var(--ease-out),
+      border-color var(--dur-micro) var(--ease-out);
+  }
+  .choice input:checked + span {
+    background: var(--color-ink);
+    border-color: var(--color-ink);
+    color: var(--color-chalk);
+  }
+  .choice input:focus-visible + span {
+    outline: 2px solid var(--color-tape);
+    outline-offset: 3px;
+  }
+
+  /* Image card hover: slow zoom. */
+  .zoom-card .zoom-media {
+    transition: transform var(--dur-draw) var(--ease-out);
+  }
+  .zoom-card:hover .zoom-media,
+  .zoom-card:focus-visible .zoom-media {
+    transform: scale(1.05);
+  }
+  .zoom-card .arrow {
+    transition: transform var(--dur-ui) var(--ease-out);
+  }
+  .zoom-card:hover .arrow {
+    transform: translateX(6px);
+  }
+
+  /* FAQ: <details> that opens smoothly where supported. */
+  .faq details {
+    border-top: 1px solid var(--color-line);
+  }
+  .faq details:last-child {
+    border-bottom: 1px solid var(--color-line);
+  }
+  .faq summary {
+    display: flex;
+    justify-content: space-between;
+    gap: 1.5rem;
+    align-items: baseline;
+    padding: 1.5rem 0;
+    cursor: pointer;
+    list-style: none;
+    font-size: var(--text-h3);
+    line-height: var(--text-h3--line-height);
+    font-weight: 600;
+  }
+  .faq summary::-webkit-details-marker {
+    display: none;
+  }
+  .faq summary .plus {
+    flex: none;
+    font-family: var(--font-mono);
+    font-size: 1.25rem;
+    transition: transform var(--dur-ui) var(--ease-out);
+  }
+  .faq details[open] summary .plus {
+    transform: rotate(45deg);
+  }
+  .faq details::details-content {
+    block-size: 0;
+    overflow-y: clip;
+    transition:
+      block-size var(--dur-ui) var(--ease-in-out),
+      content-visibility var(--dur-ui) allow-discrete;
+  }
+  .faq details[open]::details-content {
+    block-size: auto;
+  }
+
+  /* "Prefer email?" toggle beside the Book a call button. */
+  .contact-alt summary::-webkit-details-marker {
+    display: none;
+  }
+  .contact-alt .plus {
+    transition: transform var(--dur-ui) var(--ease-out);
+  }
+  .contact-alt[open] .plus {
+    transform: rotate(45deg);
+  }
+  .contact-alt::details-content {
+    block-size: 0;
+    overflow-y: clip;
+    transition:
+      block-size var(--dur-ui) var(--ease-in-out),
+      content-visibility var(--dur-ui) allow-discrete;
+  }
+  .contact-alt[open]::details-content {
+    block-size: auto;
+  }
+}
+
+/* =====================================================================
+ * Rendering cost (phones and tablets)
+ * Sections below the hero skip layout and paint until they are near the
+ * screen, which cuts first-load work on long pages. "auto" remembers each
+ * section's real height once rendered, so the scrollbar settles quickly.
+ * Desktop is excluded: its GSAP engine measures scroll positions up front.
+ * Text stays in the HTML, in the accessibility tree and in find-in-page.
+ * ===================================================================== */
+@media not all and (min-width: 1024px) and (hover: hover) and (pointer: fine) {
+  main > :not(:first-child),
+  body > footer {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 900px;
+  }
+  /* Rendered for real once the page has loaded (src/lib/motion/lite.ts). */
+  main > .cv-done,
+  body > footer.cv-done {
+    content-visibility: visible;
+  }
+}
+
+/* =====================================================================
+ * Motion
+ * `motion-ok` is set by an inline <head> script when the visitor has not
+ * asked for reduced motion. It is removed after 4s if the motion script
+ * never arrives, so content can never stay hidden.
+ * ===================================================================== */
+
+/* Hero headline: split on the server, revealed by CSS on first paint. */
+.hero-line {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.1em;
+  margin-bottom: -0.1em;
+}
+.hero-line > span {
+  display: inline-block;
+}
+html.motion-ok .hero-line > span {
+  animation: hero-rise var(--dur-reveal) var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * var(--stagger));
+}
+@keyframes hero-rise {
+  from {
+    transform: translateY(105%);
+  }
+}
+/* Supporting hero copy starts partly visible, so it never reads as "missing". */
+html.motion-ok .hero-fade {
+  animation: hero-fade var(--dur-reveal) var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * var(--stagger) + var(--stagger));
+}
+@keyframes hero-fade {
+  from {
+    opacity: 0.35;
+    transform: translateY(var(--rise));
+  }
+}
+/* The settle runs on its own element, never on the one GSAP parallaxes. */
+html.motion-ok .hero-settle {
+  animation: hero-settle var(--dur-draw) var(--ease-out) both;
+}
+@keyframes hero-settle {
+  from {
+    transform: scale(1.08);
+  }
+}
+
+/* Scroll reveals (below the fold only). */
+html.motion-ok [data-reveal] {
+  opacity: 0;
+  transform: translateY(var(--rise));
+  transition:
+    opacity var(--dur-reveal) var(--ease-out),
+    transform var(--dur-reveal) var(--ease-out);
+  transition-delay: calc(var(--i, 0) * var(--stagger));
+}
+html.motion-ok [data-reveal="left"] {
+  transform: translateX(calc(var(--rise) * -1.2));
+}
+html.motion-ok [data-reveal="right"] {
+  transform: translateX(calc(var(--rise) * 1.2));
+}
+html.motion-ok [data-reveal="draw"] {
+  opacity: 1;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--dur-draw) var(--ease-in-out);
+  transition-delay: calc(var(--i, 0) * var(--stagger) + var(--stagger));
+}
+html.motion-ok [data-reveal="draw-y"] {
+  opacity: 1;
+  transform: scaleY(0);
+  transform-origin: center top;
+  transition: transform var(--dur-draw) var(--ease-in-out);
+  transition-delay: var(--stagger);
+}
+/* Already on screen when the engine started: show it, don't replay it. */
+html.motion-ok [data-reveal].is-instant {
+  transition: none;
+}
+html.motion-ok [data-reveal].is-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* Headings split into lines by GSAP SplitText. */
+html.motion-ok.motion-live [data-split]:not(.is-split) {
+  visibility: hidden;
+}
+
+/* Typing search phrase: pure CSS, real text in the HTML. Clip + transform only,
+ * so typing never triggers layout. The caret rides an overlay as wide as the text. */
+.type-wrap {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+  vertical-align: bottom;
+}
+.type-line {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.type-cursor {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  transform: translateX(100%);
+}
+.type-cursor::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 50%;
+  width: 2px;
+  height: 1.1em;
+  margin-top: -0.55em;
+  background: currentColor;
+}
+html.motion-ok .type-line {
+  animation: type-clip calc(var(--n) * 50ms) steps(var(--n)) var(--dur-ui) both;
+}
+html.motion-ok .type-cursor {
+  animation: type-caret calc(var(--n) * 50ms) steps(var(--n)) var(--dur-ui) both;
+}
+html.motion-ok .type-cursor::before {
+  animation: caret 1s steps(1) calc(var(--n) * 50ms + var(--dur-ui)) 3 forwards;
+}
+@keyframes type-clip {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+@keyframes type-caret {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+@keyframes caret {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* Pinned "how it works": steps stack in one cell only once GSAP pins them. */
+.pin-steps.is-pinned .pin-list {
+  display: grid;
+}
+.pin-steps.is-pinned .pin-step {
+  grid-area: 1 / 1;
+}
+
+/* Page transitions (React <ViewTransition> + View Transitions API). */
+::view-transition {
+  pointer-events: none;
+}
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+}
+::view-transition-old(.page-out) {
+  animation: vt-fade-out var(--dur-micro) var(--ease-in-out) both;
+}
+::view-transition-new(.page-in) {
+  animation: vt-rise var(--dur-ui) var(--ease-out) var(--stagger) both;
+}
+@keyframes vt-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes vt-rise {
+  from {
+    opacity: 0;
+    transform: translateY(var(--rise));
+  }
+}
+::view-transition-group(site-header) {
+  animation: none;
+  z-index: 100;
+}
+::view-transition-old(site-header) {
+  display: none;
+}
+::view-transition-new(site-header) {
+  animation: none;
+}
+
+/* ---------------- Quote form success state ---------------- */
+.quote-success .qs-mark {
+  position: relative;
+  width: 4.5rem;
+  height: 4.5rem;
+}
+/* An ochre "paint stroke" swept in behind the check. */
+.quote-success .qs-stroke {
+  position: absolute;
+  inset: 18% -40% 18% -12%;
+  background: var(--color-tape);
+  border-radius: 999px 40% 999px 60%;
+  transform-origin: left center;
+  animation: qs-sweep var(--dur-ui) var(--ease-out) both;
+}
+.quote-success .qs-check {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: var(--color-ink);
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.quote-success .qs-check circle {
+  fill: var(--color-chalk, #fff);
+  stroke-dasharray: 151;
+  stroke-dashoffset: 151;
+  animation: qs-draw var(--dur-reveal) var(--ease-in-out) calc(var(--stagger) * 2) forwards;
+}
+.quote-success .qs-check path {
+  stroke-dasharray: 40;
+  stroke-dashoffset: 40;
+  animation: qs-draw var(--dur-ui) var(--ease-out) calc(var(--dur-reveal) * 0.75) forwards;
+}
+.quote-success .qs-rise {
+  animation: qs-rise var(--dur-reveal) var(--ease-out) calc(var(--dur-reveal) + var(--i, 0) * var(--stagger)) both;
+}
+@keyframes qs-sweep {
+  from { transform: scaleX(0); opacity: 0.4; }
+  to { transform: scaleX(1); opacity: 1; }
+}
+@keyframes qs-draw {
+  to { stroke-dashoffset: 0; }
+}
+@keyframes qs-rise {
+  from { opacity: 0; transform: translateY(var(--rise)); }
+  to { opacity: 1; transform: none; }
+}

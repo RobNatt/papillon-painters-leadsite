@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
+  <defs>
+    <linearGradient id="back" x1="0" y1="0" x2="1" y2="0.35">
+      <stop offset="0" stop-color="#c3b6a2"/>
+      <stop offset="0.55" stop-color="#cfc3b0"/>
+      <stop offset="1" stop-color="#c6b9a6"/>
+    </linearGradient>
+    <linearGradient id="side" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#9d917e"/>
+      <stop offset="1" stop-color="#a39784"/>
+    </linearGradient>
+    <linearGradient id="ceil" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f3f2ef"/>
+      <stop offset="1" stop-color="#f8f7f5"/>
+    </linearGradient>
+    <linearGradient id="floor" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#8d6a4c"/>
+      <stop offset="1" stop-color="#6e5038"/>
+    </linearGradient>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#b9d3e6"/>
+      <stop offset="1" stop-color="#e8f0f2"/>
+    </linearGradient>
+    <radialGradient id="light" cx="0.62" cy="0.38" r="0.55">
+      <stop offset="0" stop-color="#fff" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- ceiling -->
+  <polygon points="0,0 1200,0 1200,40 230,90 0,40" fill="url(#ceil)"/>
+  <!-- left side wall -->
+  <polygon points="0,40 230,90 230,610 0,720" fill="url(#side)"/>
+  <!-- back wall -->
+  <polygon points="230,90 1200,40 1200,640 230,610" fill="url(#back)"/>
+  <polygon points="230,90 1200,40 1200,640 230,610" fill="url(#light)"/>
+  <!-- crown line -->
+  <polygon points="230,86 1200,36 1200,46 230,96" fill="#f6f4f0"/>
+  <polygon points="0,36 230,86 230,96 0,46" fill="#e8e5df"/>
+
+  <!-- window -->
+  <rect x="700" y="150" width="300" height="300" fill="#f6f4f0"/>
+  <rect x="716" y="166" width="268" height="268" fill="url(#sky)"/>
+  <rect x="846" y="166" width="8" height="268" fill="#f6f4f0"/>
+  <rect x="716" y="296" width="268" height="8" fill="#f6f4f0"/>
+  <rect x="690" y="450" width="320" height="16" fill="#f1eee9"/>
+
+  <!-- framed art -->
+  <rect x="340" y="200" width="210" height="150" fill="#f6f4f0"/>
+  <rect x="352" y="212" width="186" height="126" fill="#56707a"/>
+  <path d="M352 300 C 400 260, 450 320, 538 280 L 538 338 L 352 338 Z" fill="#c69b5b"/>
+
+  <!-- baseboards -->
+  <polygon points="230,592 1200,620 1200,646 230,616" fill="#f3f1ec"/>
+  <polygon points="0,700 230,592 230,616 0,728" fill="#e2dfd9"/>
+
+  <!-- floor -->
+  <polygon points="0,728 230,616 1200,646 1200,800 0,800" fill="url(#floor)"/>
+  <g stroke="#5d4230" stroke-opacity="0.35" stroke-width="2">
+    <line x1="120" y1="800" x2="330" y2="619"/>
+    <line x1="360" y1="800" x2="480" y2="623"/>
+    <line x1="600" y1="800" x2="640" y2="628"/>
+    <line x1="840" y1="800" x2="800" y2="633"/>
+    <line x1="1080" y1="800" x2="960" y2="638"/>
+  </g>
+
+  <!-- rug -->
+  <polygon points="300,700 1000,700 1100,790 220,790" fill="#d9d2c4"/>
+  <polygon points="320,708 990,708 1080,782 240,782" fill="none" stroke="#b5ab98" stroke-width="3"/>
+
+  <!-- sofa -->
+  <rect x="330" y="470" width="470" height="70" rx="14" fill="#4f5964"/>
+  <rect x="310" y="520" width="510" height="120" rx="16" fill="#5a6571"/>
+  <rect x="300" y="500" width="60" height="150" rx="14" fill="#4b5560"/>
+  <rect x="790" y="500" width="60" height="150" rx="14" fill="#4b5560"/>
+  <rect x="380" y="535" width="190" height="40" rx="10" fill="#66717e"/>
+  <rect x="580" y="535" width="190" height="40" rx="10" fill="#66717e"/>
+  <rect x="330" y="648" width="16" height="30" fill="#3b2d22"/>
+  <rect x="804" y="648" width="16" height="30" fill="#3b2d22"/>
+  <rect x="410" y="490" width="80" height="60" rx="10" fill="#c9a25c"/>
+
+  <!-- plant -->
+  <path d="M1050 640 L1130 640 L1118 720 L1062 720 Z" fill="#e7e2d8"/>
+  <g fill="#4d6b4f">
+    <ellipse cx="1090" cy="560" rx="22" ry="70" transform="rotate(-18 1090 560)"/>
+    <ellipse cx="1100" cy="565" rx="20" ry="64" transform="rotate(22 1100 565)"/>
+    <ellipse cx="1072" cy="590" rx="18" ry="50" transform="rotate(-45 1072 590)"/>
+    <ellipse cx="1120" cy="595" rx="18" ry="48" transform="rotate(48 1120 595)"/>
+  </g>
+</svg>
