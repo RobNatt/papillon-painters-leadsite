@@ -1,3 +1,6 @@
+import "server-only";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 import Image from "next/image";
 import type { PhotoSlot, Tone } from "@/content/images";
 
@@ -8,43 +11,48 @@ const toneBg: Record<Tone, string> = {
   charcoal: "bg-chip-charcoal",
 };
 
+/** Checked at build time (pages are static), so a dropped-in file just works. */
+const hasFile = (file: string) => existsSync(join(process.cwd(), "public", file));
+
 /**
- * Renders a photo slot with next/image, or a paint-chip placeholder (soft
- * brush-stroke bands) when no photo has been added yet. Always fills its
- * parent; the parent sets the aspect ratio.
+ * Renders a photo slot with next/image (`fill`, so it always covers its
+ * parent and never sets the layout), or a paint-chip placeholder (soft
+ * brush-stroke bands) when the slot's file hasn't been added yet. The parent
+ * must be positioned and sized.
  */
 export function Photo({
   slot,
   priority = false,
   sizes = "100vw",
   className = "",
+  decorative = false,
 }: {
   slot: PhotoSlot;
   priority?: boolean;
   sizes?: string;
   className?: string;
+  /** Hide from assistive tech (backgrounds, motion-only photos). */
+  decorative?: boolean;
 }) {
-  if (slot.src) {
+  if (hasFile(slot.file)) {
     return (
       <Image
-        src={slot.src}
-        alt={slot.alt}
-        width={slot.width}
-        height={slot.height}
+        src={slot.file}
+        alt={decorative ? "" : slot.alt}
+        fill
         sizes={sizes}
         preload={priority}
-        className={`h-full w-full object-cover ${className}`}
+        className={`object-cover ${className}`}
       />
     );
   }
   return (
-    <div role="presentation" className={`relative h-full w-full overflow-hidden ${toneBg[slot.tone]} ${className}`}>
-      <svg
-        aria-hidden="true"
-        className="absolute inset-0 h-full w-full"
-        viewBox="0 0 400 300"
-        preserveAspectRatio="xMidYMid slice"
-      >
+    <div
+      role={decorative ? "presentation" : "img"}
+      aria-label={decorative ? undefined : `${slot.alt} (placeholder)`}
+      className={`absolute inset-0 overflow-hidden ${toneBg[slot.tone]} ${className}`}
+    >
+      <svg aria-hidden="true" className="absolute inset-0 h-full w-full" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice">
         <defs>
           <linearGradient id={`pp-sheen-${slot.tone}`} x1="0" y1="0" x2="1" y2="1">
             <stop offset="0" stopColor="#fff" stopOpacity="0.10" />

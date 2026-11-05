@@ -11,7 +11,7 @@ export function Wordmark({ className = "" }: { className?: string }) {
         <span className="w-[7px] bg-chip-forest" />
         <span className="w-[7px] bg-tape" />
       </span>
-      <span className="text-[1.0625rem] font-semibold tracking-[-0.01em] wdth-112">Papillion Painters</span>
+      <span className="whitespace-nowrap text-[0.9375rem] font-semibold tracking-[-0.01em] wdth-112 min-[380px]:text-[1.0625rem]">Papillion Painters</span>
     </span>
   );
 }
@@ -22,7 +22,7 @@ export function SiteHeader() {
       <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-3 focus:z-50 focus:bg-chalk focus:px-4 focus:py-2">
         Skip to content
       </a>
-      <div className="mx-auto flex h-16 max-w-site items-center justify-between gap-6 px-gutter lg:h-20">
+      <div className="mx-auto flex h-16 max-w-site items-center justify-between gap-2 px-gutter min-[400px]:gap-3 md:gap-6 lg:h-20">
         <Link href="/" aria-label="Papillion Painters home">
           <Wordmark />
         </Link>
@@ -36,15 +36,20 @@ export function SiteHeader() {
           </Link>
         </nav>
 
-        {/* Mobile: no-JS disclosure menu */}
-        <MobileMenu>
+        {/* Mobile: the quote button stays in view, plus a no-JS disclosure menu */}
+        <div className="flex flex-none items-center gap-1.5 min-[400px]:gap-2 md:hidden">
+          <Link href="/#quote" className="btn btn-primary min-h-11 whitespace-nowrap px-3 py-2 text-small min-[400px]:px-4">
+            Free quote
+          </Link>
+          <MobileMenu>
           <nav aria-label="Main" className="absolute right-0 top-[calc(100%+0.5rem)] grid w-[min(20rem,calc(100vw-2rem))] gap-1 bg-chalk p-3 shadow-[0_20px_60px_-20px_rgb(20_26_46/0.35)]">
             <Link className="px-3 py-3 font-medium" href="/#how-it-works">How it works</Link>
             <Link className="px-3 py-3 font-medium" href={nav.cost.href}>Costs &amp; estimator</Link>
             <Link className="px-3 py-3 font-medium" href="/#faq">FAQ</Link>
             <Link className="btn btn-primary mt-2" href="/#quote">Get a free quote</Link>
           </nav>
-        </MobileMenu>
+          </MobileMenu>
+        </div>
       </div>
     </header>
   );

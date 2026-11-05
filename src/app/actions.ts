@@ -51,6 +51,17 @@ export async function submitQuote(_prev: FormState, fd: FormData): Promise<FormS
   if (types.length === 0) errors.projectType = "Pick at least one project type.";
   if (!timeline) errors.timeline = "Choose a timeline.";
 
+  // Optional color preview from the visualizer, only when the visitor ticked the box.
+  let attachment: { filename: string; content: string } | undefined;
+  const photo = fd.get("photo");
+  if (fd.get("attachPhoto") === "on" && photo instanceof File && photo.size > 0) {
+    if (!PHOTO_TYPES.includes(photo.type) || photo.size > MAX_PHOTO_BYTES) {
+      errors.photo = "That preview couldn't be attached. Untick the box to send without it.";
+    } else {
+      attachment = { filename: "color-preview.jpg", content: Buffer.from(await photo.arrayBuffer()).toString("base64") };
+    }
+  }
+
   const values = { name, email, phone, timeline, note, projectType: types.join(",") };
   if (Object.keys(errors).length) return { status: "error", errors, values };
   if (isBot(fd)) return { status: "success", values: { name } };
@@ -70,8 +81,10 @@ export async function submitQuote(_prev: FormState, fd: FormData): Promise<FormS
         ["Timeline", timeline],
         ["Note", note],
         ["Text/phone consent", "Yes (submitted with consent notice)"],
+        ["Color preview", attachment ? "Attached" : ""],
         ["Form", source || "quote"],
       ],
+      attachments: attachment ? [attachment] : undefined,
       data: {
         projectType: typeNames,
         timeline,
@@ -79,6 +92,7 @@ export async function submitQuote(_prev: FormState, fd: FormData): Promise<FormS
         consentToContact: true,
         consentText: smsConsent,
         source: source || "quote",
+        photoAttached: Boolean(attachment),
       },
     });
   } catch (e) {

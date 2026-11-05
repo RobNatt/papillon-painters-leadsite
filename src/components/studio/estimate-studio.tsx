@@ -1,34 +1,38 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useActionState, useCallback, useEffect, useId, useRef, useState } from "react";
 import { submitEstimate, type FormState } from "@/app/actions";
 import { conditionLabels, roomSizeLabels, sidingLabels, usd, type Scope } from "@/lib/estimate";
+import { visualizerSampleHouse } from "@/content/images";
+import { setQuotePrefill } from "@/lib/quote-prefill";
 import { Honeypot } from "../ui";
 import type { Recolor } from "./recolor";
 
-/** House palette. Our own names: these are not any paint brand's colors. */
+/** The six brand colors. Our own names: these are not any paint brand's colors. */
 const SWATCHES = [
-  { name: "Chalk Linen", hex: "#ece6da" },
-  { name: "Wheat Straw", hex: "#d8c39a" },
-  { name: "Prairie Greige", hex: "#c9c1b3" },
-  { name: "Warm Taupe", hex: "#a08e7a" },
-  { name: "Blush Stone", hex: "#d9b8ae" },
-  { name: "Clay Pot", hex: "#b7735a" },
-  { name: "Wet Ochre", hex: "#e2a83c" },
-  { name: "Soft Fern", hex: "#b9c4a8" },
-  { name: "Sage Field", hex: "#9daa8f" },
-  { name: "Prairie Green", hex: "#2f5b46" },
-  { name: "Mist Blue", hex: "#bccad3" },
-  { name: "Harbor Blue", hex: "#5d7c99" },
   { name: "Platte Navy", hex: "#1f2a4d" },
-  { name: "Dusk Plum", hex: "#5b3b55" },
-  { name: "Storm Grey", hex: "#8e9396" },
-  { name: "Night Charcoal", hex: "#3a3b3f" },
+  { name: "Prairie Green", hex: "#2f5b46" },
+  { name: "Sage Field", hex: "#7a8b6f" },
+  { name: "Wheat Straw", hex: "#c9b79c" },
+  { name: "Wet Ochre", hex: "#e2a83c" },
+  { name: "Dusk Plum", hex: "#2e1f2e" },
 ];
+
+const SURFACES = ["Interior walls", "Exterior", "Trim", "Cabinets", "Front door"] as const;
+type Surface = (typeof SURFACES)[number];
+
+const SAMPLES = {
+  room: { src: "/visualizer/sample-room.svg", label: "sample room", surface: "Interior walls" as Surface, scope: "interior" as Scope },
+  house: { src: visualizerSampleHouse, label: "sample house", surface: "Exterior" as Surface, scope: "exterior" as Scope },
+};
 
 type Color = { name: string; hex: string };
 type Source = "none" | "sample" | "upload";
+type Tool = "fill" | "brush" | "erase";
+
+const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 export function EstimateStudio() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -39,22 +43,45 @@ export function EstimateStudio() {
   const [source, setSource] = useState<Source>("none");
   const [loading, setLoading] = useState(false);
   const [painted, setPainted] = useState(0);
+  const [canUndo, setCanUndo] = useState(false);
   const [activeId, setActiveId] = useState(0);
-  const [color, setColor] = useState<Color>(SWATCHES[11]);
+  const [color, setColor] = useState<Color>(SWATCHES[2]);
   const [tolerance, setTolerance] = useState(16);
   const [split, setSplit] = useState(0);
+  const [tool, setTool] = useState<Tool>("fill");
+  const [brushSize, setBrushSize] = useState(24);
+  const [surface, setSurface] = useState<Surface>("Interior walls");
   const [hint, setHint] = useState("");
   const [scope, setScope] = useState<Scope>("interior");
   const [formKey, setFormKey] = useState(0);
+  const [cursor, setCursor] = useState({ fx: 0.5, fy: 0.5 });
+  const [keyboard, setKeyboard] = useState(false);
   const pendingTap = useRef<{ fx: number; fy: number } | null>(null);
+  const stroke = useRef<{ last: { x: number; y: number } } | null>(null);
+  const frame = useRef(0);
 
   const redraw = useCallback(() => {
     const engine = engineRef.current;
     const ctx = canvasRef.current?.getContext("2d");
     if (engine && ctx) engine.render(ctx, split);
   }, [split]);
-
   useEffect(redraw, [redraw]);
+
+  /** Brush strokes re-render at most once per frame. */
+  const scheduleRedraw = () => {
+    if (frame.current) return;
+    frame.current = requestAnimationFrame(() => {
+      frame.current = 0;
+      redraw();
+    });
+  };
+  useEffect(() => () => cancelAnimationFrame(frame.current), []);
+
+  const sync = () => {
+    const engine = engineRef.current;
+    setPainted(engine?.regionCount ?? 0);
+    setCanUndo(engine?.canUndo ?? false);
+  };
 
   // Keep a ready-to-send JPEG of the preview (uploads only; the sample isn't the visitor's room).
   useEffect(() => {
@@ -66,9 +93,10 @@ export function EstimateStudio() {
       photoBlob.current = (await engineRef.current?.toBlob()) ?? null;
     }, 400);
     return () => window.clearTimeout(t);
-  }, [source, painted, color, activeId]);
+  }, [source, painted, color, activeId, canUndo]);
 
-  const paintAt = useCallback(
+  /** Fill (or select) at a point given as a fraction of the image. */
+  const fillAt = useCallback(
     (fx: number, fy: number) => {
       const engine = engineRef.current;
       if (!engine) return;
@@ -79,48 +107,51 @@ export function EstimateStudio() {
         setActiveId(existing);
         const hex = engine.colorOf(existing);
         const match = SWATCHES.find((s) => s.hex === hex);
-        if (hex) setColor(match ?? { name: "Custom color", hex });
-        setHint("Wall selected. Pick a color to change it.");
+        if (hex) setColor(match ?? { name: `Custom color ${hex}`, hex });
+        setHint("Surface selected. Pick a color to change it.");
         return;
       }
       const id = engine.fill(x, y, color.hex, tolerance);
       if (!id) {
-        setHint("That spot is too small to be a wall. Tap a larger area, or raise the edge sensitivity.");
+        setHint("That spot is too small to be a surface. Tap a larger area, raise the edge sensitivity, or use the brush.");
         return;
       }
       setHint("");
       setActiveId(id);
-      setPainted(engine.regionCount);
-      engine.render(canvasRef.current!.getContext("2d")!, split);
+      sync();
+      redraw();
     },
-    [color.hex, tolerance, split],
+    [color.hex, tolerance, redraw],
   );
-
-  const paintAtRef = useRef(paintAt);
+  const fillAtRef = useRef(fillAt);
   useEffect(() => {
-    paintAtRef.current = paintAt;
-  }, [paintAt]);
+    fillAtRef.current = fillAt;
+  }, [fillAt]);
 
-  const load = useCallback(async (input: File | string, kind: Source) => {
+  const load = useCallback(async (input: File | string, kind: Source, sample?: keyof typeof SAMPLES) => {
     setLoading(true);
     setHint("");
     try {
       const { Recolor, loadImage } = await import("./recolor");
-      const img = await loadImage(input);
-      const engine = new Recolor(img as CanvasImageSource & { width: number; height: number });
+      const img = await loadImage(input); // respects phone EXIF rotation
+      const engine = new Recolor(img as CanvasImageSource & { width: number; height: number }); // ≤ 1600px
       engineRef.current = engine;
       const canvas = canvasRef.current!;
       canvas.width = engine.w;
       canvas.height = engine.h;
       engine.render(canvas.getContext("2d")!, 0);
       setSplit(0);
-      setPainted(0);
       setActiveId(0);
       setSource(kind);
+      sync();
+      if (sample) {
+        setSurface(SAMPLES[sample].surface);
+        setScope(SAMPLES[sample].scope);
+      }
       if (pendingTap.current) {
         const { fx, fy } = pendingTap.current;
         pendingTap.current = null;
-        requestAnimationFrame(() => paintAtRef.current(fx, fy));
+        requestAnimationFrame(() => fillAtRef.current(fx, fy));
       }
     } catch {
       setHint("We couldn't open that image. Try a JPG or PNG photo.");
@@ -129,9 +160,88 @@ export function EstimateStudio() {
     }
   }, []);
 
+  /* ---------- pointer: fill on tap, brush/eraser on drag ---------- */
+  const fraction = (e: { clientX: number; clientY: number }) => {
+    const r = canvasRef.current!.getBoundingClientRect();
+    return { fx: (e.clientX - r.left) / r.width, fy: (e.clientY - r.top) / r.height };
+  };
+  const radiusPx = () => {
+    const engine = engineRef.current!;
+    const r = canvasRef.current!.getBoundingClientRect();
+    return (brushSize / 2) * (engine.w / r.width);
+  };
+  const startStroke = () => {
+    const engine = engineRef.current;
+    if (!engine) return false;
+    const id = engine.beginStroke(tool === "erase" ? "erase" : "paint", activeId, color.hex);
+    if (tool !== "erase" && !id) return false;
+    return true;
+  };
+  const finishStroke = () => {
+    const engine = engineRef.current;
+    if (!engine) return;
+    const id = engine.endStroke();
+    if (id) setActiveId(id);
+    sync();
+    redraw();
+  };
+  const onPointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    setKeyboard(false);
+    const engine = engineRef.current;
+    if (tool === "fill" || !engine || !startStroke()) return;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    const { fx, fy } = fraction(e);
+    const p = { x: fx * engine.w, y: fy * engine.h };
+    engine.brush(p.x, p.y, radiusPx());
+    stroke.current = { last: p };
+    scheduleRedraw();
+  };
+  const onPointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    const engine = engineRef.current;
+    if (!stroke.current || !engine) return;
+    const { fx, fy } = fraction(e);
+    const p = { x: fx * engine.w, y: fy * engine.h };
+    const r = radiusPx();
+    // Stamp along the segment so fast drags leave no gaps.
+    const { last } = stroke.current;
+    const d = Math.hypot(p.x - last.x, p.y - last.y);
+    const steps = Math.max(1, Math.ceil(d / Math.max(1, r * 0.4)));
+    for (let i = 1; i <= steps; i++) engine.brush(last.x + ((p.x - last.x) * i) / steps, last.y + ((p.y - last.y) * i) / steps, r);
+    stroke.current.last = p;
+    scheduleRedraw();
+  };
+  const onPointerUp = () => {
+    if (!stroke.current) return;
+    stroke.current = null;
+    finishStroke();
+  };
   const onCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    const r = e.currentTarget.getBoundingClientRect();
-    paintAt((e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height);
+    if (tool !== "fill") return;
+    const { fx, fy } = fraction(e);
+    fillAt(fx, fy);
+  };
+
+  /* ---------- keyboard: arrows move a crosshair, Enter/Space acts ---------- */
+  const actAtCursor = () => {
+    if (tool === "fill") return fillAt(cursor.fx, cursor.fy);
+    const engine = engineRef.current;
+    if (!engine || !startStroke()) return;
+    engine.brush(cursor.fx * engine.w, cursor.fy * engine.h, radiusPx());
+    finishStroke();
+  };
+  const onCanvasKey = (e: React.KeyboardEvent<HTMLCanvasElement>) => {
+    const step = e.shiftKey ? 0.08 : 0.02;
+    const moves: Record<string, [number, number]> = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] };
+    if (moves[e.key]) {
+      e.preventDefault();
+      setKeyboard(true);
+      const [dx, dy] = moves[e.key];
+      setCursor((c) => ({ fx: Math.min(0.99, Math.max(0.01, c.fx + dx)), fy: Math.min(0.99, Math.max(0.01, c.fy + dy)) }));
+    } else if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      setKeyboard(true);
+      actAtCursor();
+    }
   };
 
   const pickColor = (c: Color) => {
@@ -140,7 +250,7 @@ export function EstimateStudio() {
     if (engine && activeId) {
       engine.setColor(activeId, c.hex);
       redraw();
-      setPainted(engine.regionCount);
+      sync();
     }
   };
 
@@ -148,17 +258,43 @@ export function EstimateStudio() {
     const engine = engineRef.current;
     if (!engine) return;
     setActiveId(engine.undo());
-    setPainted(engine.regionCount);
+    sync();
     redraw();
   };
   const reset = () => {
     engineRef.current?.reset();
     setActiveId(0);
-    setPainted(0);
+    sync();
     redraw();
   };
 
+  const download = async () => {
+    const blob = await engineRef.current?.toBlob(0.9);
+    if (!blob) return;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "papillion-painters-color-preview.jpg";
+    document.body.append(a);
+    a.click();
+    a.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 2000);
+  };
+
+  /** Hand the color (and, for the visitor's own photo, the preview) to the quote form. */
+  const quoteThisColor = async () => {
+    let photo: File | undefined;
+    if (source === "upload") {
+      const blob = await engineRef.current?.toBlob(0.85);
+      if (blob) photo = new File([blob], "color-preview.jpg", { type: "image/jpeg" });
+    }
+    setQuotePrefill({ note: `${surface}, ${color.name}`, photo });
+    document.getElementById("quote")?.scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth", block: "start" });
+  };
+
   const swatchName = useId();
+  const surfaceName = useId();
+  const toolName = useId();
 
   return (
     <div className="grid gap-10 lg:grid-cols-12 lg:gap-8">
@@ -167,27 +303,44 @@ export function EstimateStudio() {
         <div className="relative overflow-hidden bg-primer-deep">
           <canvas
             ref={canvasRef}
+            tabIndex={source === "none" ? -1 : 0}
             onClick={onCanvasClick}
-            className={`block h-auto w-full cursor-crosshair touch-manipulation ${source === "none" ? "hidden" : ""}`}
-            role="img"
-            aria-label={`Room preview. ${painted} area${painted === 1 ? "" : "s"} painted. Tap a wall to paint it with ${color.name}.`}
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
+            onPointerCancel={onPointerUp}
+            onKeyDown={onCanvasKey}
+            onBlur={() => setKeyboard(false)}
+            className={`block h-auto w-full outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tape ${
+              tool === "fill" ? "cursor-crosshair touch-manipulation" : "cursor-cell touch-none"
+            } ${source === "none" ? "hidden" : ""}`}
+            role="application"
+            aria-roledescription="color preview"
+            aria-label={`Photo preview. ${painted} area${painted === 1 ? "" : "s"} painted. Tool: ${tool === "fill" ? "fill" : tool === "brush" ? "brush" : "eraser"}. Use arrow keys to move the crosshair and Enter to ${tool === "fill" ? "paint the surface under it" : tool === "brush" ? "brush" : "erase"} with ${color.name}.`}
           />
+          {keyboard && source !== "none" ? (
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute h-6 w-6 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow-[0_0_0_2px_var(--color-ink)]"
+              style={{ left: `${cursor.fx * 100}%`, top: `${cursor.fy * 100}%` }}
+            />
+          ) : null}
           {source === "none" ? (
             <button
               type="button"
               className="group relative block w-full cursor-crosshair text-left"
               onClick={(e) => {
                 const r = e.currentTarget.getBoundingClientRect();
-                pendingTap.current = { fx: (e.clientX - r.left) / r.width, fy: (e.clientY - r.top) / r.height };
-                load("/visualizer/sample-room.svg", "sample");
+                // Keyboard "clicks" have no position: start without a tap.
+                if (e.detail > 0) pendingTap.current = { fx: (e.clientX - r.left) / r.width, fy: (e.clientY - r.top) / r.height };
+                load(SAMPLES.house.src, "sample", "house");
               }}
-              aria-label="Try the visualizer on a sample room"
+              aria-label="Try the visualizer on a sample house"
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/visualizer/sample-room.svg" alt="" width={1200} height={800} className="block h-auto w-full" />
+              <Image src={SAMPLES.house.src} alt="" width={1344} height={752} sizes="(min-width: 1024px) 55vw, 100vw" className="block h-auto w-full" />
               <span className="absolute inset-x-4 bottom-4 flex flex-wrap items-center justify-between gap-3 bg-chalk/95 px-4 py-3 text-small">
-                <span className="font-semibold">Tap any wall to try a color</span>
-                <span className="text-graphite">Sample room · or upload your own below</span>
+                <span className="font-semibold">Tap the siding to try a color</span>
+                <span className="text-graphite">Sample house · or use your own photo below</span>
               </span>
             </button>
           ) : null}
@@ -200,12 +353,13 @@ export function EstimateStudio() {
 
         <div className="flex flex-wrap items-center gap-3">
           <button type="button" className="btn btn-primary min-h-11 px-5 py-2.5 text-small" onClick={() => fileRef.current?.click()}>
-            {source === "upload" ? "Use a different photo" : "Upload a photo of your room"}
+            {source === "upload" ? "Use a different photo" : "Upload or take a photo"}
           </button>
+          {/* No `capture` attribute: phones offer both the camera and the photo library. */}
           <input
             ref={fileRef}
             type="file"
-            accept="image/jpeg,image/png,image/webp,image/*"
+            accept="image/*"
             className="sr-only"
             tabIndex={-1}
             aria-hidden="true"
@@ -215,38 +369,83 @@ export function EstimateStudio() {
               e.target.value = "";
             }}
           />
-          {source !== "sample" ? (
-            <button type="button" className="btn btn-ghost min-h-11 px-5 py-2.5 text-small" onClick={() => load("/visualizer/sample-room.svg", "sample")}>
-              Use the sample room
-            </button>
-          ) : null}
-          {painted > 0 ? (
-            <>
-              <button type="button" className="tlink text-small" onClick={undo}>Undo last wall</button>
-              <button type="button" className="tlink text-small" onClick={reset}>Clear all</button>
-            </>
-          ) : null}
+          <button type="button" className="tlink text-small" onClick={() => load(SAMPLES.house.src, "sample", "house")}>
+            Sample house
+          </button>
+          <button type="button" className="tlink text-small" onClick={() => load(SAMPLES.room.src, "sample", "room")}>
+            Sample room
+          </button>
         </div>
+
+        {source !== "none" ? (
+          <div className="grid gap-4">
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+              <fieldset className="flex flex-wrap items-center gap-2">
+                <legend className="sr-only">Tool</legend>
+                {(
+                  [
+                    ["fill", "Fill"],
+                    ["brush", "Brush"],
+                    ["erase", "Eraser"],
+                  ] as const
+                ).map(([key, label]) => (
+                  <label key={key} className="choice">
+                    <input type="radio" name={toolName} checked={tool === key} onChange={() => setTool(key)} />
+                    <span>{label}</span>
+                  </label>
+                ))}
+              </fieldset>
+              <button type="button" className="tlink text-small disabled:opacity-40" onClick={undo} disabled={!canUndo}>
+                Undo
+              </button>
+              {painted > 0 ? (
+                <button type="button" className="tlink text-small" onClick={reset}>
+                  Clear all
+                </button>
+              ) : null}
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="field">
+                <span className="field-label">Before / after</span>
+                <input type="range" min={0} max={100} value={Math.round(split * 100)} onChange={(e) => setSplit(Number(e.target.value) / 100)} className="accent-[var(--color-ink)]" />
+              </label>
+              {tool === "fill" ? (
+                <label className="field">
+                  <span className="field-label">Tolerance (raise it if the paint stops short)</span>
+                  <input type="range" min={6} max={34} value={tolerance} onChange={(e) => setTolerance(Number(e.target.value))} className="accent-[var(--color-ink)]" />
+                </label>
+              ) : (
+                <label className="field">
+                  <span className="field-label">Brush size</span>
+                  <input type="range" min={8} max={64} value={brushSize} onChange={(e) => setBrushSize(Number(e.target.value))} className="accent-[var(--color-ink)]" />
+                </label>
+              )}
+            </div>
+          </div>
+        ) : null}
 
         <p className="min-h-6 text-small text-graphite" aria-live="polite">
           {hint ||
             (source === "none"
-              ? "Your photo is processed on your device. It's only sent if you choose to email the estimate."
-              : painted === 0
-                ? "Tap a wall to paint it. Tap more walls to add them, or tap a painted wall to change its color."
-                : `${painted} area${painted === 1 ? "" : "s"} painted. Pick a color to change the selected wall.`)}
+              ? "Your photo stays on your device unless you send it."
+              : tool === "brush"
+                ? "Drag to add paint where the fill missed. It adds to the selected surface."
+                : tool === "erase"
+                  ? "Drag to remove paint that spilled onto trim, furniture or sky."
+                  : painted === 0
+                    ? "Tap a surface to paint it. Tap more to add them, or tap a painted one to change its color."
+                    : `${painted} area${painted === 1 ? "" : "s"} painted. Pick a color to change the selected one.`)}
         </p>
 
         {source !== "none" ? (
-          <div className="grid gap-4 sm:grid-cols-2">
-            <label className="field">
-              <span className="field-label">Before / after</span>
-              <input type="range" min={0} max={100} value={Math.round(split * 100)} onChange={(e) => setSplit(Number(e.target.value) / 100)} className="accent-[var(--color-ink)]" />
-            </label>
-            <label className="field">
-              <span className="field-label">Edge sensitivity (raise it if the paint stops short)</span>
-              <input type="range" min={6} max={34} value={tolerance} onChange={(e) => setTolerance(Number(e.target.value))} className="accent-[var(--color-ink)]" />
-            </label>
+          <div className="flex flex-wrap items-center gap-3 border-t border-line pt-4">
+            <button type="button" className="btn btn-ghost min-h-11 px-5 py-2.5 text-small" onClick={download} disabled={painted === 0}>
+              Download
+            </button>
+            <button type="button" className="btn btn-primary min-h-11 px-5 py-2.5 text-small" onClick={quoteThisColor}>
+              Get a quote for this color <span className="arrow" aria-hidden="true">→</span>
+            </button>
           </div>
         ) : null}
       </div>
@@ -258,7 +457,7 @@ export function EstimateStudio() {
             <span className="text-h3 wdth-104">1. Pick a color</span>
             <span className="label text-graphite">{color.name}</span>
           </legend>
-          <div className="grid grid-cols-8 gap-2">
+          <div className="grid grid-cols-6 gap-2">
             {SWATCHES.map((s) => (
               <label key={s.hex} className="relative aspect-[3/4] cursor-pointer" title={s.name}>
                 <input
@@ -277,11 +476,23 @@ export function EstimateStudio() {
             <input
               type="color"
               value={color.hex}
-              onChange={(e) => pickColor({ name: "Custom color", hex: e.target.value })}
+              onChange={(e) => pickColor({ name: `Custom color ${e.target.value}`, hex: e.target.value })}
               className="h-10 w-14 cursor-pointer border border-line bg-chalk p-1"
             />
             Or match any color (paste a paint chip&rsquo;s color code)
           </label>
+        </fieldset>
+
+        <fieldset className="grid gap-3">
+          <legend className="field-label mb-3">What are you painting?</legend>
+          <div className="flex flex-wrap gap-2">
+            {SURFACES.map((s) => (
+              <label key={s} className="choice">
+                <input type="radio" name={surfaceName} checked={surface === s} onChange={() => setSurface(s)} />
+                <span>{s}</span>
+              </label>
+            ))}
+          </div>
         </fieldset>
 
         <EstimateForm

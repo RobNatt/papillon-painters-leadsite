@@ -21,15 +21,17 @@ Copy `.env.example` to `.env.local`. In development, if neither `FORM_ENDPOINT_U
 | Painter booking link | Defaults to the N-Tech booking calendar; override with `NEXT_PUBLIC_BOOKING_URL` |
 | Quote form options and consent text | `projectTypes`, `timelines` and `smsConsent` in `src/lib/site.ts` |
 | Ranking proof | `src/content/ranking-log.ts`. Add one row per Search Console check, real numbers only |
-| Photos | `src/content/images.ts`. Drop files in `public/images/` and set `src`, `width` and `height` |
+| Photos | Save each file at the path listed in `src/content/images.ts` (e.g. `public/images/hero-home.jpg`) and rebuild. Until a file exists, a branded placeholder shows |
 | CRM | `deliverLead()` in `src/lib/leads.ts`. Every form goes through it |
 | Estimate pricing | `src/lib/estimate.ts`, calibrated to the cited national sources |
 | "Last reviewed" date | `site.lastReviewed` in `src/lib/site.ts` |
 
 ## How the motion works
 
+- **One engine, one scroll system.** `src/lib/motion/init.ts` runs on every device with a single Lenis instance driving ScrollTrigger through the GSAP ticker. Wheel scrolling is smoothed on desktop; touch scrolling stays native.
+- **When it loads.** Desktop: when the browser is idle after hydration. Phones/tablets: on the first touch, scroll or key press, so a phone's first seconds stay free for the hero form (`src/components/motion-root.tsx`).
+- **Timing** comes from shared tokens (`globals.css` and `src/lib/motion/tokens.ts`). Only transform and opacity are animated.
+- **Features:** unveiling home hero (`hero-unveil.*`), marquees (`marquee.*`), paint-brush sections (`lib/motion/brush.ts`), `ZoomImage` photos, and the trust bar.
 - **Hero headlines** are split on the server and revealed with CSS, so the text is in the HTML and visible right away.
-- **Desktop with a mouse or trackpad** loads GSAP, ScrollTrigger, SplitText and Lenis after first paint (`src/lib/motion/init.ts`).
-- **Phones and tablets** get a small reveal-on-scroll script (`src/lib/motion/lite.ts`) instead.
-- **Reduced motion, or no JavaScript:** everything is simply visible. A fallback timer reveals the content if the script never loads.
+- **Reduced motion, or no JavaScript:** no pinning, zooming, brush or marquee motion. Everything renders as normal, readable sections.
 - **Page transitions** use React's `<ViewTransition>` (`src/components/page-transition.tsx`).

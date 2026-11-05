@@ -3,7 +3,7 @@ import Link from "next/link";
 import { FaqList, type Faq } from "@/components/faq";
 import { breadcrumbLd, JsonLd, orgId } from "@/components/json-ld";
 import { PageTransition } from "@/components/page-transition";
-import { Photo } from "@/components/photo";
+import { ZoomImage } from "@/components/zoom-image";
 import { QuoteForm } from "@/components/quote-form";
 import { PainterStrip } from "@/components/site-footer";
 import { EstimateStudio } from "@/components/studio/estimate-studio";
@@ -105,9 +105,7 @@ export default function CostPage() {
           </div>
           <div aria-hidden="true" className="relative hidden aspect-[4/5] overflow-hidden lg:col-span-5 lg:block">
             <div className="absolute inset-x-0 -top-[8%] h-[116%] lg:will-change-transform" data-parallax="0.1">
-              <div className="hero-settle absolute inset-0">
-                <Photo slot={images.heroCost} priority sizes="40vw" />
-              </div>
+              <ZoomImage slot={images.heroCost} priority sizes="(min-width: 1024px) 40vw, 1px" decorative className="h-full w-full" />
             </div>
           </div>
         </Container>

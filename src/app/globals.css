@@ -490,17 +490,19 @@ html.lenis body {
  * Sections below the hero skip layout and paint until they are near the
  * screen, which cuts first-load work on long pages. "auto" remembers each
  * section's real height once rendered, so the scrollbar settles quickly.
- * Desktop is excluded: its GSAP engine measures scroll positions up front.
+ * Desktop is excluded: it renders everything up front.
  * Text stays in the HTML, in the accessibility tree and in find-in-page.
+ * ScrollTrigger re-measures once the deferred sections have rendered.
  * ===================================================================== */
 @media not all and (min-width: 1024px) and (hover: hover) and (pointer: fine) {
-  main > :not(:first-child),
+  main > :not(:first-child):not([data-unveil-spacer]),
   body > footer {
     content-visibility: auto;
     contain-intrinsic-size: auto 900px;
   }
-  /* Rendered for real once the page has loaded (src/lib/motion/lite.ts). */
-  main > .cv-done,
+  /* Rendered for real once the page has loaded (src/lib/motion/deferred.ts). */
+  /* Same specificity as the rule above (plus source order), so this wins. */
+  main > .cv-done:not([data-unveil-spacer]),
   body > footer.cv-done {
     content-visibility: visible;
   }
@@ -749,4 +751,141 @@ html.motion-ok .type-cursor::before {
 @keyframes qs-rise {
   from { opacity: 0; transform: translateY(var(--rise)); }
   to { opacity: 1; transform: none; }
+}
+
+/* =====================================================================
+ * Interaction features
+ * Everything below animates transform and opacity only. Static, readable
+ * fallbacks apply whenever `motion-ok` is absent (reduced motion, no JS).
+ * ===================================================================== */
+
+/* ---------- Marquee (src/components/marquee.tsx) ---------- */
+.marquee {
+  position: relative;
+  overflow: hidden;
+  mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+}
+.marquee-track {
+  display: flex;
+  width: max-content;
+}
+.marquee-group {
+  display: flex;
+  flex: none;
+  align-items: center;
+}
+/* Reduced motion / no JS: one static row that wraps, clones hidden. */
+html:not(.motion-ok) .marquee {
+  mask-image: none;
+}
+html:not(.motion-ok) .marquee-track,
+html:not(.motion-ok) .marquee-group {
+  width: auto;
+  flex-wrap: wrap;
+}
+html:not(.motion-ok) .marquee-group[aria-hidden="true"] {
+  display: none;
+}
+
+/* ---------- Unveiling hero (src/components/hero-unveil.tsx) ---------- */
+/* Static by default: the story stage is a normal section after the hero. */
+.unveil-pool {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+@media (min-width: 768px) {
+  .unveil-pool {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+.unveil-pool > li {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+}
+html.motion-ok .unveil-dark {
+  opacity: 0;
+}
+html:not(.motion-ok) .unveil-dark {
+  display: none;
+}
+/* With motion: the stage overlays the last screen of the hero (the pinned
+ * view) and starts invisible; the photo pool waits until it's needed. */
+html.motion-ok .hero-unveil .unveil-stage {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 100svh;
+  padding: 0;
+  background: transparent;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+html.motion-ok .hero-unveil .unveil-stage-inner {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  height: 100%;
+  place-items: center;
+}
+html.motion-ok .hero-unveil .unveil-pool {
+  display: none;
+}
+html.motion-ok .hero-unveil .unveil-pool.is-armed {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: block;
+}
+html.motion-ok .hero-unveil .unveil-pool.is-armed > li {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: clamp(9rem, 20vw, 17rem);
+  opacity: 0;
+  will-change: transform, opacity;
+}
+html.motion-ok [data-unveil-statement] {
+  text-shadow: 0 2px 28px rgb(9 11 18 / 0.75), 0 0 2px rgb(9 11 18 / 0.5);
+}
+html.motion-ok [data-unveil-spacer] {
+  height: 120svh;
+}
+
+/* ---------- ZoomImage (src/components/zoom-image.tsx) ---------- */
+html.motion-ok [data-reveal="zoom"] {
+  transform: scale(1.15);
+  transition:
+    opacity var(--dur-draw) var(--ease-out),
+    transform var(--dur-draw) var(--ease-out);
+}
+
+/* ---------- Paint-brush sections (src/lib/motion/brush.ts) ---------- */
+.paint-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: 0.45;
+}
+@media (hover: hover) and (pointer: fine) {
+  html.motion-ok [data-paint-section] {
+    cursor:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath d='M20.5 3.5l8 8-9.5 9.5-8-8z' fill='%23141a2e'/%3E%3Cpath d='M10.2 13.7l8.1 8.1-2.4 2.4c-1.8 1.8-4.5 1.3-6.1 2.9L5 31l-2-2 3.9-4.8c1.6-1.6 1.1-4.3 2.9-6.1z' fill='%23e2a83c' stroke='%23141a2e' stroke-width='1.2'/%3E%3C/svg%3E")
+        3 29,
+      auto;
+  }
+}
+
+/* Photos that scale with scroll get their own compositor layer, so the
+ * browser moves a texture instead of re-rasterising the image every frame. */
+html.motion-ok [data-zoom-scroll],
+html.motion-ok [data-reveal="zoom"],
+html.motion-ok [data-unveil-bg],
+html.motion-ok .marquee-track {
+  will-change: transform;
 }

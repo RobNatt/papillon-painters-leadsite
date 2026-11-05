@@ -2,14 +2,16 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { FaqList, type Faq } from "@/components/faq";
 import { HowItWorks } from "@/components/how-it-works";
+import { HeroUnveil } from "@/components/hero-unveil";
 import { JsonLd, orgId } from "@/components/json-ld";
+import { Marquee } from "@/components/marquee";
 import { PageTransition } from "@/components/page-transition";
-import { Photo } from "@/components/photo";
-import { QuoteForm } from "@/components/quote-form";
 import { PainterStrip } from "@/components/site-footer";
-import { ButtonLink, Container, HeroHeadline, SectionHead } from "@/components/ui";
+import { TrustBar } from "@/components/trust-bar";
+import { ButtonLink, Container, SectionHead } from "@/components/ui";
+import { ZoomImage } from "@/components/zoom-image";
 import { images } from "@/content/images";
-import { nav, services, site } from "@/lib/site";
+import { nav, services } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: { absolute: "Professional Painters in Papillion, NE | Free Quotes" },
@@ -64,50 +66,18 @@ const serviceLd = {
 export default function Home() {
   return (
     <PageTransition>
-      {/* ---------------- Hero ---------------- */}
-      <section aria-labelledby="hero-title" className="on-chip relative overflow-hidden bg-chip-navy text-white" data-parallax-root>
-        <div aria-hidden="true" className="absolute inset-0">
-          <div className="absolute inset-x-0 -top-[6%] h-[118%] lg:will-change-transform" data-parallax="0.12">
-            <div className="hero-settle absolute inset-0">
-              <Photo slot={images.heroHome} priority sizes="100vw" />
-            </div>
-          </div>
-          <div className="absolute inset-0 bg-[linear-gradient(100deg,rgb(31_42_77/0.94)_0%,rgb(31_42_77/0.82)_45%,rgb(31_42_77/0.45)_100%)]" />
-        </div>
+      {/* ---------------- Hero (three-stage scroll sequence) ---------------- */}
+      <HeroUnveil />
 
-        <Container className="relative grid gap-12 pb-section-sm pt-16 lg:grid-cols-12 lg:gap-8 lg:pb-section lg:pt-24">
-          <div className="grid content-start gap-8 lg:col-span-7">
-            <p className="label hero-fade text-white/75" style={{ "--i": 0 } as React.CSSProperties}>
-              {site.city}, {site.stateCode} · {site.zips.join(" · ")}
-            </p>
-            <HeroHeadline
-              lines={["Professional", "painters in", "Papillion, one", "request away."]}
-              className="text-display wdth-112"
-            />
-            <p className="hero-fade max-w-[38ch] text-lead text-white/85" style={{ "--i": 3 } as React.CSSProperties}>
-              Tell us about the job once. One independent Papillion painter contacts you with a free on-site quote.
-            </p>
-            <ul className="hero-fade grid gap-2 text-small text-white/80 sm:grid-cols-3" style={{ "--i": 4 } as React.CSSProperties}>
-              <li className="border-t border-white/25 pt-3">Free for homeowners</li>
-              <li className="border-t border-white/25 pt-3">One painter, not a bidding list</li>
-              <li className="border-t border-white/25 pt-3">Referral service, not a contractor</li>
-            </ul>
-          </div>
-
-          <div id="quote" className="scroll-mt-24 lg:col-span-5">
-            <div className="hero-fade bg-chalk p-6 text-ink sm:p-8" style={{ "--i": 4 } as React.CSSProperties}>
-              <QuoteForm source="home-hero" />
-            </div>
-          </div>
-        </Container>
-      </section>
+      <TrustBar />
 
       {/* ---------------- Referral statement ---------------- */}
-      <section aria-labelledby="who-title" className="py-section">
-        <Container className="grid gap-10 lg:grid-cols-12">
+      <section aria-labelledby="who-title" className="relative isolate overflow-hidden py-section" data-paint-section="light">
+        <canvas className="paint-canvas" aria-hidden="true" data-paint-canvas />
+        <Container className="relative z-[1] grid gap-10 lg:grid-cols-12">
           <p className="label text-graphite lg:col-span-3" data-reveal>Who we are</p>
           <div className="grid gap-8 lg:col-span-8">
-            <h2 id="who-title" className="text-h1 wdth-108" data-split>
+            <h2 id="who-title" className="text-h1 wdth-108" data-split data-paint-headline>
               We&rsquo;re not painters. We know which painter to call.
             </h2>
             <div className="grid max-w-measure gap-5 text-lead text-graphite" data-reveal>
@@ -167,6 +137,18 @@ export default function Home() {
         </Container>
       </section>
 
+      {/* ---------------- Project types band ---------------- */}
+      <section aria-label="Project types painters quote" className="border-y border-line py-8 lg:py-10">
+        <Marquee label="Project types painters quote" speed={36} groupClassName="gap-8 pr-8 lg:gap-12 lg:pr-12">
+          {["Interior", "Exterior", "Cabinets", "Decks", "Trim", "Small commercial"].map((w) => (
+            <li key={w} className="flex items-center gap-8 whitespace-nowrap text-h1 font-semibold wdth-112 lg:gap-12">
+              <span>{w}</span>
+              <span aria-hidden="true" className="h-3 w-3 flex-none rounded-full bg-tape" />
+            </li>
+          ))}
+        </Marquee>
+      </section>
+
       {/* ---------------- Visualizer teaser ---------------- */}
       <section aria-labelledby="viz-title" className="bg-primer-deep py-section">
         <Container className="grid items-center gap-12 lg:grid-cols-12">
@@ -188,7 +170,7 @@ export default function Home() {
       </section>
 
       {/* ---------------- Painting in Papillion ---------------- */}
-      <section aria-labelledby="local-title" className="py-section">
+      <section aria-labelledby="local-title" className="pt-section">
         <Container className="grid gap-14">
           <SectionHead
             eyebrow="Painting in Papillion"
@@ -224,12 +206,13 @@ export default function Home() {
         </Container>
       </section>
 
-      <FaqList faqs={faqs} />
+      <FaqList faqs={faqs} tight />
 
       {/* ---------------- Closing CTA ---------------- */}
-      <section aria-labelledby="cta-title" className="on-chip bg-chip-navy text-white">
-        <Container className="grid gap-8 py-section lg:grid-cols-12 lg:items-end">
-          <h2 id="cta-title" className="text-h1 wdth-108 lg:col-span-8" data-split>
+      <section aria-labelledby="cta-title" className="on-chip relative isolate overflow-hidden bg-chip-navy text-white" data-paint-section="dark">
+        <canvas className="paint-canvas" aria-hidden="true" data-paint-canvas />
+        <Container className="relative z-[1] grid gap-8 py-section lg:grid-cols-12 lg:items-end">
+          <h2 id="cta-title" className="text-h1 wdth-108 lg:col-span-8" data-split data-paint-headline>
             Ready for a real price? Ask a Papillion painter.
           </h2>
           <div className="flex flex-wrap gap-4 lg:col-span-4 lg:justify-end" data-reveal>
@@ -264,7 +247,7 @@ function ServiceBlock({
   return (
     <Link href={href} className={`zoom-card on-chip group relative grid min-h-[30rem] overflow-hidden text-white ${tone}`} data-reveal={reveal}>
       <div aria-hidden="true" className="zoom-media absolute inset-0 opacity-60">
-        <Photo slot={slot} sizes="(min-width: 768px) 50vw, 100vw" />
+        <ZoomImage slot={slot} sizes="(min-width: 768px) 50vw, 100vw" decorative className="h-full w-full" />
       </div>
       <div aria-hidden="true" className={`absolute inset-0 ${tone} opacity-40`} />
       <span className="label absolute left-6 top-6 text-white/80">{chip}</span>

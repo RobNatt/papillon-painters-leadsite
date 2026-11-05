@@ -102,6 +102,7 @@ function endpointPayload(lead: Lead) {
     phone: lead.phone ?? "",
     ...lead.data,
     fields: Object.fromEntries(lead.fields.filter(([, v]) => v)),
+    attachments: lead.attachments?.map((a) => ({ filename: a.filename, contentType: a.filename.endsWith(".png") ? "image/png" : "image/jpeg", base64: a.content })) ?? [],
     site: "papillionpainters.com",
     submittedAt: new Date().toISOString(),
   };

@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useId, useRef, useState } from "react";
 import { submitQuote, type FormState } from "@/app/actions";
+import { useQuotePrefill } from "@/lib/quote-prefill";
 import { projectTypes, smsConsent, timelines } from "@/lib/site";
 import { Disclosure, Honeypot } from "./ui";
 
@@ -13,6 +14,10 @@ export const QUOTE_HEADING = "Tell us about your project and we’ll connect you
  * Homeowner quote request. Works without JS (plain form post to the server
  * action); with JS it shows inline errors and an animated success state
  * without a reload.
+ *
+ * The color visualizer can hand off a color ("Exterior, Sage Field") into
+ * the Note and offer to attach its preview (src/lib/quote-prefill.ts). The
+ * preview is only sent if the visitor ticks "Attach my color preview".
  */
 export function QuoteForm({
   source,
@@ -47,6 +52,28 @@ export function QuoteForm({
     "aria-describedby": e[k] ? `${id}-${k}-err` : undefined,
   });
 
+  // Hand-off from the color visualizer.
+  const prefill = useQuotePrefill();
+  const nameRef = useRef<HTMLInputElement>(null);
+  const noteRef = useRef<HTMLTextAreaElement>(null);
+  const photoRef = useRef<HTMLInputElement>(null);
+  const seq = prefill?.seq ?? 0;
+  useEffect(() => {
+    if (!seq || !prefill) return;
+    if (noteRef.current) noteRef.current.value = prefill.note;
+    nameRef.current?.focus({ preventScroll: true });
+    // Only the latest hand-off matters; `prefill` is read for that seq.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [seq]);
+  // The file input is reset with the form after each submit; put the preview back.
+  useEffect(() => {
+    const input = photoRef.current;
+    if (!input || !prefill?.photo || typeof DataTransfer === "undefined") return;
+    const dt = new DataTransfer();
+    dt.items.add(prefill.photo);
+    input.files = dt.files;
+  }, [prefill, state]);
+
   if (state.status === "success") return <QuoteSuccess name={v.name ?? ""} Heading={Heading} />;
 
   return (
@@ -58,7 +85,7 @@ export function QuoteForm({
       <div className="grid gap-5 sm:grid-cols-2">
         <div className="field sm:col-span-2">
           <label className="field-label" htmlFor={`${id}-name`}>Name</label>
-          <input id={`${id}-name`} name="name" className="input" autoComplete="name" required defaultValue={v.name} {...aria("name")} />
+          <input ref={nameRef} id={`${id}-name`} name="name" className="input" autoComplete="name" required defaultValue={v.name} {...aria("name")} />
           {err("name")}
         </div>
         <div className="field">
@@ -100,8 +127,23 @@ export function QuoteForm({
         <label className="field-label" htmlFor={`${id}-note`}>
           Note <span className="text-graphite">(optional)</span>
         </label>
-        <textarea id={`${id}-note`} name="note" className="input" placeholder="Rooms, square footage, peeling areas, HOA color rules…" defaultValue={v.note} />
+        <textarea ref={noteRef} id={`${id}-note`} name="note" className="input" placeholder="Rooms, square footage, peeling areas, HOA color rules…" defaultValue={v.note} />
       </div>
+
+      {prefill?.photo ? (
+        <div className="grid gap-2">
+          <input ref={photoRef} type="file" name="photo" accept="image/jpeg" hidden tabIndex={-1} aria-hidden="true" />
+          <label className="flex items-center gap-3 text-small">
+            <input type="checkbox" name="attachPhoto" className="h-4 w-4 flex-none accent-[var(--color-ink)]" {...aria("photo")} />
+            {prefill.previewUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={prefill.previewUrl} alt="" width={56} height={40} className="h-10 w-14 flex-none object-cover" />
+            ) : null}
+            <span>Attach my color preview so the painter can see it</span>
+          </label>
+          {err("photo")}
+        </div>
+      ) : null}
 
       {state.status === "error" && state.message ? (
         <p role="alert" className="field-error">{state.message}</p>
