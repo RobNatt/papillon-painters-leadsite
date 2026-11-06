@@ -230,6 +230,7 @@ export async function submitPainterInquiry(_prev: FormState, fd: FormData): Prom
       name,
       email,
       phone,
+      data: { company, website: websiteUrl, serviceArea: area, message, page: str(fd, "source", 120) },
       fields: [
         ["Name", name],
         ["Company", company],
