@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { FaqList, type Faq } from "@/components/faq";
-import { breadcrumbLd, JsonLd, orgId } from "@/components/json-ld";
+import { breadcrumbLd, JsonLd, orgId, articleLd as buildArticleLd } from "@/components/json-ld";
 import { PageTransition } from "@/components/page-transition";
 import { makeCite, PainterContact, SourceList } from "@/components/painter-shared";
 import { ButtonLink, Container, HeroHeadline, SectionHead } from "@/components/ui";
@@ -11,9 +11,9 @@ import { nav, site } from "@/lib/site";
 const path = nav.painterWebsites.href;
 
 export const metadata: Metadata = {
-  title: { absolute: "Painting Leads for Free: SEO, Google Business Profile & Reviews" },
+  title: { absolute: "Websites for Painting Companies: SEO, Google Profile & Reviews" },
   description:
-    "How painting companies get leads for free: a website that ranks, an optimized Google Business Profile, and a steady flow of real reviews. What each one takes, and how we set them up.",
+    "Websites for painting companies that rank, plus a complete Google Business Profile and real reviews. What each takes, and how we set them up for painters.",
   alternates: { canonical: path },
 };
 
@@ -22,7 +22,7 @@ const Cite = makeCite(order);
 
 const faqs: Faq[] = [
   {
-    q: "Are free painting leads really free?",
+    q: "Is a website really a free source of leads?",
     a: "There's no per-lead fee, but they take work. A website, a profile and reviews cost time, or a build plus upkeep. Unlike paid leads, the work compounds. A page that ranks this year usually ranks next year. Every review keeps working.",
   },
   {
@@ -39,23 +39,22 @@ const faqs: Faq[] = [
   },
 ];
 
-const articleLd = {
-  "@context": "https://schema.org",
-  "@type": "Article",
-  headline: "Painting leads for free: SEO, Google Business Profile and reviews",
-  author: { "@id": orgId },
-  publisher: { "@id": orgId },
-  dateModified: site.lastReviewed,
-  mainEntityOfPage: `${site.url}${path}`,
-};
+const articleLd = buildArticleLd({
+  path,
+  headline: "Websites for painting companies: SEO, Google Business Profile and reviews",
+  description: metadata.description as string,
+});
 
 const serviceLd = {
   "@context": "https://schema.org",
   "@type": "Service",
+  "@id": `${site.url}${path}#service`,
+  url: `${site.url}${path}`,
   name: "Websites, local SEO and Google Business Profile setup for painting companies",
   serviceType: "Marketing services for painting contractors",
   provider: { "@id": orgId },
   audience: { "@type": "BusinessAudience", audienceType: "Painting companies" },
+  description: "Websites, local SEO and Google Business Profile setup for painting companies, so they can generate their own leads.",
 };
 
 export default function PainterWebsitesPage() {
@@ -68,7 +67,7 @@ export default function PainterWebsitesPage() {
             <nav aria-label="Breadcrumb" className="label hero-fade text-white/70">
               <Link className="tlink" href="/">Home</Link> <span aria-hidden="true">/</span> For painting companies
             </nav>
-            <HeroHeadline lines={["Painting leads", "for free, from", "the channels", "you own."]} className="text-display wdth-112" />
+            <HeroHeadline lines={["Websites for", "painting", "companies that", "bring in leads."]} className="text-display wdth-112" />
             <p className="hero-fade max-w-[46ch] text-lead text-white/80" style={{ "--i": 3 } as React.CSSProperties}>
               &ldquo;Free&rdquo; means no fee per lead. It doesn&rsquo;t mean no work. Three channels do most of it: a
               website that ranks, a complete Google Business Profile and real reviews.
@@ -145,7 +144,7 @@ export default function PainterWebsitesPage() {
                 <span className="h-2.5 w-2.5 rounded-full bg-line" />
                 <span className="h-2.5 w-2.5 rounded-full bg-line" />
                 <span className="h-2.5 w-2.5 rounded-full bg-line" />
-                <span className="ml-3 flex-1 truncate rounded-pill bg-chalk px-3 py-1 font-mono text-[0.7rem] text-graphite">yourpaintingco.com</span>
+                <span className="ml-3 flex-1 truncate rounded-pill bg-chalk px-3 py-1 font-mono text-[0.75rem] text-graphite">yourpaintingco.com</span>
               </div>
               <div className="grid gap-3 p-4 sm:p-6" data-reveal-group aria-hidden="true">
                 <div className="flex items-center justify-between" data-reveal>
@@ -174,7 +173,7 @@ export default function PainterWebsitesPage() {
                 <div className="flex gap-3" data-reveal>
                   {[0, 1, 2].map((i) => (
                     <span key={i} className="grid flex-1 gap-1.5 border border-line p-2">
-                      <span className="font-mono text-[0.65rem] text-tape-hover">★★★★★</span>
+                      <span className="font-mono text-[0.75rem] text-tape-hover">★★★★★</span>
                       <span className="h-1.5 bg-primer-deep" />
                       <span className="h-1.5 w-3/4 bg-primer-deep" />
                     </span>

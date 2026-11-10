@@ -249,6 +249,17 @@ html.lenis body {
     padding-bottom: 2px;
     transition: background-size var(--dur-ui) var(--ease-out);
   }
+  /* At least a 44px tall hit area for links that sit in menus and lists. */
+  .tap {
+    display: inline-flex;
+    min-height: 2.75rem;
+    align-items: center;
+  }
+  /* Keep the hover underline under the text, not at the bottom of the taller box. */
+  .tlink.tap {
+    background-position: 0 calc(50% + 0.8em);
+  }
+
   .tlink:hover,
   .tlink:focus-visible {
     background-size: 100% 2px;

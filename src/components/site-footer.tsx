@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { disclosure, nav, site } from "@/lib/site";
+import { disclosure, nav, operatorNote, site } from "@/lib/site";
 import { Wordmark } from "./site-header";
 
 /** Strip for painting-company owners, above the footer on homeowner pages. */
@@ -19,7 +19,7 @@ export function PainterStrip() {
           </p>
           <p data-reveal>
             <Link className="tlink text-white" href={nav.painterWebsites.href}>
-              See how we get painters free leads →
+              See how we build websites for painters →
             </Link>
           </p>
         </div>
@@ -35,19 +35,28 @@ export function SiteFooter() {
         <div className="grid content-start gap-5 md:col-span-5">
           <Wordmark />
           <p className="max-w-measure text-small text-graphite">{disclosure}</p>
+          <section aria-labelledby="who-runs-this-site" className="grid gap-2">
+            <h2 id="who-runs-this-site" className="label text-graphite">Who runs this site</h2>
+            <p className="max-w-measure text-small text-graphite">
+              {operatorNote}{" "}
+              <a className="tlink" href={site.operator.url} rel="noopener">
+                Visit {site.operator.name}
+              </a>
+            </p>
+          </section>
         </div>
-        <nav aria-label="Homeowners" className="grid content-start gap-3 text-small md:col-span-3 md:col-start-7">
-          <p className="label text-graphite">Homeowners</p>
-          <Link className="tlink justify-self-start" href="/">Professional painters in Papillion</Link>
-          <Link className="tlink justify-self-start" href={nav.cost.href}>Interior &amp; exterior painting costs</Link>
-          <Link className="tlink justify-self-start" href={`${nav.cost.href}#estimator`}>Room color visualizer &amp; estimate</Link>
-          <Link className="tlink justify-self-start" href="/#quote">Request a free quote</Link>
+        <nav aria-label="Homeowners" className="grid content-start gap-0 text-small md:col-span-3 md:col-start-7">
+          <p className="label mb-2 text-graphite">Homeowners</p>
+          <Link className="tlink tap justify-self-start" href="/">Painters in Papillion, NE</Link>
+          <Link className="tlink tap justify-self-start" href={nav.cost.href}>Interior &amp; exterior painting costs</Link>
+          <Link className="tlink tap justify-self-start" href={`${nav.cost.href}#estimator`}>Room color visualizer &amp; estimate</Link>
+          <Link className="tlink tap justify-self-start" href="/#quote">Request a free quote</Link>
         </nav>
-        <nav aria-label="Painting companies" className="grid content-start gap-3 text-small md:col-span-3">
-          <p className="label text-graphite">Painting companies</p>
-          <Link className="tlink justify-self-start" href={nav.painterWebsites.href}>Websites &amp; free painting leads</Link>
-          <Link className="tlink justify-self-start" href={nav.painterLeads.href}>How to get painting leads</Link>
-          <Link className="tlink justify-self-start" href={nav.privacy.href}>Privacy</Link>
+        <nav aria-label="Painting companies" className="grid content-start gap-0 text-small md:col-span-3">
+          <p className="label mb-2 text-graphite">Painting companies</p>
+          <Link className="tlink tap justify-self-start" href={nav.painterWebsites.href}>Websites for painting companies</Link>
+          <Link className="tlink tap justify-self-start" href={nav.painterLeads.href}>How to get painting leads</Link>
+          <Link className="tlink tap justify-self-start" href={nav.privacy.href}>Privacy</Link>
         </nav>
       </div>
       <div className="mx-auto flex max-w-site flex-wrap justify-between gap-4 border-t border-line px-gutter py-6 text-small text-graphite">

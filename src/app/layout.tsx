@@ -27,7 +27,7 @@ const plexMono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
   title: {
-    default: "Professional Painters in Papillion, NE | Free Quotes",
+    default: "Painters in Papillion, NE | Free Referral, Not a Contractor",
     template: "%s | Papillion Painters",
   },
   description:

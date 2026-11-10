@@ -21,6 +21,7 @@ Copy `.env.example` to `.env.local`. In development, if neither `FORM_ENDPOINT_U
 | Painter booking link | Defaults to the N-Tech booking calendar; override with `NEXT_PUBLIC_BOOKING_URL` |
 | Quote form options and consent text | `projectTypes`, `timelines` and `smsConsent` in `src/lib/site.ts` |
 | Ranking proof | `src/content/ranking-log.ts`. Add one row per Search Console check, real numbers only |
+| Page dates (sitemap + Article schema) | `src/lib/page-dates.ts`: bump a page's `updated` date when its content changes (e.g. after adding a ranking-log row) |
 | Photos | Save each file at the path listed in `src/content/images.ts` (e.g. `public/images/hero-home.jpg`) and rebuild. Until a file exists, a branded placeholder shows |
 | CRM | `deliverLead()` in `src/lib/leads.ts`. Every form goes through it |
 | Estimate pricing | `src/lib/estimate.ts`, calibrated to the cited national sources |

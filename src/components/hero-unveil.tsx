@@ -45,7 +45,7 @@ export function HeroUnveil() {
                   {site.city}, {site.stateCode} · {site.zips.join(" · ")}
                 </p>
                 <HeroHeadline
-                  lines={["Professional", "painters in", "Papillion, one", "request away."]}
+                  lines={["Painters in", "Papillion, NE,", "one request", "away."]}
                   className="text-display wdth-112"
                 />
                 <p className="hero-fade max-w-[38ch] text-lead text-white/85" style={{ "--i": 3 } as React.CSSProperties} data-unveil-fade>
