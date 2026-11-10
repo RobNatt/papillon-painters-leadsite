@@ -369,10 +369,10 @@ export function EstimateStudio() {
               e.target.value = "";
             }}
           />
-          <button type="button" className="tlink text-small" onClick={() => load(SAMPLES.house.src, "sample", "house")}>
+          <button type="button" className="tlink tap text-small" onClick={() => load(SAMPLES.house.src, "sample", "house")}>
             Sample house
           </button>
-          <button type="button" className="tlink text-small" onClick={() => load(SAMPLES.room.src, "sample", "room")}>
+          <button type="button" className="tlink tap text-small" onClick={() => load(SAMPLES.room.src, "sample", "room")}>
             Sample room
           </button>
         </div>
@@ -399,7 +399,7 @@ export function EstimateStudio() {
                 Undo
               </button>
               {painted > 0 ? (
-                <button type="button" className="tlink text-small" onClick={reset}>
+                <button type="button" className="tlink tap text-small" onClick={reset}>
                   Clear all
                 </button>
               ) : null}
@@ -561,7 +561,7 @@ function EstimateForm({
           <Link href="/#quote" className="btn btn-primary" data-magnetic="">
             Get an exact on-site quote <span className="arrow" aria-hidden="true">→</span>
           </Link>
-          <button type="button" className="tlink text-small" onClick={onRestart}>Build another estimate</button>
+          <button type="button" className="tlink tap text-small" onClick={onRestart}>Build another estimate</button>
         </div>
       </div>
     );

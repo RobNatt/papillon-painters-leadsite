@@ -6,7 +6,7 @@
  * shown to painting-company owners as evidence. Newest first.
  *
  * Example row:
- * { date: "2026-12-01", query: "professional painters papillion", position: 8.4,
+ * { date: "2026-12-01", query: "painters papillion ne", position: 8.4,
  *   clicks: 12, impressions: 310, note: "First week on page one" },
  */
 export type RankingEntry = {

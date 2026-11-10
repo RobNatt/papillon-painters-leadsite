@@ -1,3 +1,4 @@
+import { pageDates } from "@/lib/page-dates";
 import { site } from "@/lib/site";
 
 export function JsonLd({ data }: { data: Record<string, unknown> | Record<string, unknown>[] }) {
@@ -22,12 +23,23 @@ export const organizationLd = {
   name: site.name,
   url: site.url,
   description:
-    "A referral service that connects homeowners in Papillion, Nebraska with independent local painters. Papillion Painters is not a painting company and does not perform painting work.",
-  areaServed: {
-    "@type": "City",
-    name: "Papillion",
-    containedInPlace: { "@type": "AdministrativeArea", name: "Sarpy County, Nebraska" },
+    "A referral service that connects homeowners in Papillion, Nebraska with independent local painters. Papillion Painters is not a painting company and does not perform painting work. It is run by N-Tech Digital Solutions.",
+  logo: `${site.url}/icon`,
+  email: site.contactEmail,
+  parentOrganization: {
+    "@type": "Organization",
+    name: site.operator.name,
+    url: site.operator.url,
   },
+  areaServed: [
+    {
+      "@type": "City",
+      name: "Papillion",
+      containedInPlace: { "@type": "AdministrativeArea", name: "Sarpy County, Nebraska" },
+    },
+    { "@type": "AdministrativeArea", name: "Sarpy County, Nebraska" },
+  ],
+  knowsAbout: ["Painting contractor referrals", "Painting costs in Nebraska", "Local SEO for painting companies"],
 };
 
 export const websiteLd = {
@@ -62,5 +74,36 @@ export function breadcrumbLd(items: { name: string; path: string }[]) {
       name: it.name,
       item: `${site.url}${it.path}`,
     })),
+  };
+}
+
+/**
+ * Article node for a content page. Dates come from `pageDates`, the image is
+ * the page's generated Open Graph card, and the description should match the
+ * page's meta description.
+ */
+export function articleLd(opts: {
+  path: string;
+  headline: string;
+  description: string;
+  about?: string[];
+  citation?: string[];
+}) {
+  const url = `${site.url}${opts.path}`;
+  const dates = pageDates[opts.path];
+  return {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "@id": `${url}#article`,
+    headline: opts.headline,
+    description: opts.description,
+    ...(opts.about ? { about: opts.about } : {}),
+    image: `${url}/opengraph-image`,
+    author: { "@id": orgId },
+    publisher: { "@id": orgId },
+    datePublished: dates.published,
+    dateModified: dates.updated,
+    mainEntityOfPage: { "@type": "WebPage", "@id": url, isPartOf: { "@id": `${site.url}/#website` } },
+    ...(opts.citation ? { citation: opts.citation } : {}),
   };
 }

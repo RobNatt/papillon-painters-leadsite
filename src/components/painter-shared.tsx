@@ -9,7 +9,7 @@ export function makeCite(order: LeadSourceId[]) {
     const n = order.indexOf(id) + 1;
     return (
       <sup>
-        <a href={`#src-${id}`} className="ml-0.5 font-mono text-[0.7em] !no-underline" aria-label={`Source ${n}`}>
+        <a href={`#src-${id}`} className="-my-3 ml-0.5 inline-block px-1 py-3 font-mono text-[0.8em] !no-underline" aria-label={`Source ${n}`}>
           [{n}]
         </a>
       </sup>

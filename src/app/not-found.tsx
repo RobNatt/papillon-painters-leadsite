@@ -1,5 +1,13 @@
+import type { Metadata } from "next";
 import { ButtonLink, Container } from "@/components/ui";
-import { nav } from "@/lib/site";
+import { nav, site } from "@/lib/site";
+
+export const metadata: Metadata = {
+  title: { absolute: `Page not found | ${site.name}` },
+  description: "This page doesn't exist. Find a Papillion painter or check painting costs instead.",
+  robots: { index: false, follow: true },
+  openGraph: { title: `Page not found | ${site.name}` },
+};
 
 export default function NotFound() {
   return (

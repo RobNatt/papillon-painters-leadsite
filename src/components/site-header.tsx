@@ -23,14 +23,15 @@ export function SiteHeader() {
         Skip to content
       </a>
       <div className="mx-auto flex h-16 max-w-site items-center justify-between gap-2 px-gutter min-[400px]:gap-3 md:gap-6 lg:h-20">
-        <Link href="/" aria-label="Papillion Painters home">
+        <Link href="/" aria-label="Papillion Painters home" className="tap">
           <Wordmark />
         </Link>
 
         <nav aria-label="Main" className="hidden items-center gap-8 text-small md:flex">
-          <Link className="tlink" href="/#how-it-works">How it works</Link>
-          <Link className="tlink" href={nav.cost.href}>Costs &amp; estimator</Link>
-          <Link className="tlink" href="/#faq">FAQ</Link>
+          <Link className="tlink tap" href="/#how-it-works">How it works</Link>
+          <Link className="tlink tap" href={nav.cost.href}>Costs &amp; estimator</Link>
+          <Link className="tlink tap" href="/#faq">FAQ</Link>
+          <Link className="tlink tap" href={nav.painterWebsites.href}>For painters</Link>
           <Link href="/#quote" className="btn btn-primary min-h-11 px-5 py-2.5 text-small" data-magnetic="">
             Get a free quote
           </Link>
@@ -46,6 +47,7 @@ export function SiteHeader() {
             <Link className="px-3 py-3 font-medium" href="/#how-it-works">How it works</Link>
             <Link className="px-3 py-3 font-medium" href={nav.cost.href}>Costs &amp; estimator</Link>
             <Link className="px-3 py-3 font-medium" href="/#faq">FAQ</Link>
+            <Link className="px-3 py-3 font-medium" href={nav.painterWebsites.href}>For painters</Link>
             <Link className="btn btn-primary mt-2" href="/#quote">Get a free quote</Link>
           </nav>
           </MobileMenu>

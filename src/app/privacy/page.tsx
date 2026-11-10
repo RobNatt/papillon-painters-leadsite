@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { PageTransition } from "@/components/page-transition";
+import { JsonLd } from "@/components/json-ld";
 import { Container } from "@/components/ui";
+import { pageDates } from "@/lib/page-dates";
 import { disclosure, site } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -10,9 +12,21 @@ export const metadata: Metadata = {
 };
 
 export default function PrivacyPage() {
-  const updated = new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" }).format(new Date(site.lastReviewed));
+  const updated = new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" }).format(new Date(pageDates["/privacy"].updated));
+  const webPageLd = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "@id": `${site.url}/privacy#webpage`,
+    url: `${site.url}/privacy`,
+    name: "Privacy",
+    isPartOf: { "@id": `${site.url}/#website` },
+    publisher: { "@id": `${site.url}/#organization` },
+    dateModified: pageDates["/privacy"].updated,
+    inLanguage: "en-US",
+  };
   return (
     <PageTransition>
+      <JsonLd data={webPageLd} />
       <section aria-labelledby="privacy-title" className="py-section">
         <Container className="grid gap-10 lg:grid-cols-12">
           <div className="lg:col-span-4">
@@ -33,7 +47,7 @@ export default function PrivacyPage() {
 
             <h2>Why, and who sees it</h2>
             <ul>
-              <li>A <strong>quote request</strong> is shared with one independent local painter so they can contact you about the job. You agree to this with the checkbox on the form.</li>
+              <li>A <strong>quote request</strong> is shared with one independent local painter so they can contact you about the job by phone, text or email. You agree to this when you submit the form, as the note under the submit button says. Papillion Painters may also contact you about your request.</li>
               <li>An <strong>estimate</strong> is emailed to you. It&rsquo;s shared with a painter only if you tick &ldquo;have a local painter contact me&rdquo;, and your room preview goes with it only in that case.</li>
               <li>We keep a copy of each request so we can follow up and handle problems.</li>
               <li>We use <a href="https://resend.com" rel="noopener" target="_blank">Resend</a> to send email and Vercel to host the site. They process data on our behalf.</li>

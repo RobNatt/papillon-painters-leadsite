@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { FaqList, type Faq } from "@/components/faq";
-import { breadcrumbLd, JsonLd, orgId } from "@/components/json-ld";
+import { breadcrumbLd, JsonLd, articleLd as buildArticleLd } from "@/components/json-ld";
 import { PageTransition } from "@/components/page-transition";
 import { makeCite, PainterContact, SourceList } from "@/components/painter-shared";
 import { ButtonLink, Container, SectionHead } from "@/components/ui";
@@ -15,7 +15,7 @@ const QUERY = "how to get painting leads";
 export const metadata: Metadata = {
   title: { absolute: "How to Get Painting Leads: The Best Free and Paid Strategies" },
   description:
-    "Angi, HomeAdvisor, Thumbtack, Google Local Services Ads, marketing agencies, SEO and AEO compared for painting companies: how each charges, whether leads are shared, and what you own at the end.",
+    "How to get painting leads, free and paid: Angi, Thumbtack, Google ads, agencies and SEO compared. What each costs, whether leads are shared, what you own.",
   alternates: { canonical: path },
 };
 
@@ -26,7 +26,7 @@ type Row = { channel: string; pay: string; shared: string; cost: React.ReactNode
 const rows: Row[] = [
   { channel: "Angi (incl. HomeAdvisor)", pay: "Per lead, plus optional ads", shared: "Often sent to several pros", cost: <>≈ $15–$85 per lead<Cite id="calls99" /></>, own: "No", anchor: "angi" },
   { channel: "Thumbtack", pay: "Per lead, within a weekly budget", shared: "Homeowners often contact several pros", cost: <>≈ $25–$75 per lead<Cite id="thumbtackCost" /></>, own: "No", anchor: "thumbtack" },
-  { channel: "Google Local Services Ads", pay: "Per lead (call or message)", shared: "Not resold, but competitors sit beside you", cost: <>≈ $48 avg per lead for painters<Cite id="webtonic" /></>, own: "No", anchor: "lsa" },
+  { channel: "Google Local Services Ads", pay: "Per lead (call or message)", shared: "Not resold, but competitors sit beside you", cost: <>≈ $48 median per lead for painters<Cite id="webtonic" /></>, own: "No", anchor: "lsa" },
   { channel: "Google Search Ads", pay: "Per click", shared: "No", cost: <>≈ $174 median per lead for painters<Cite id="webtonic" /></>, own: "No", anchor: "ppc" },
   { channel: "Marketing agency", pay: "Monthly retainer", shared: "Depends", cost: "Varies widely", own: "Depends on the contract", anchor: "agency" },
   { channel: "SEO + Google Business Profile", pay: "Time, or a build plus upkeep", shared: "No", cost: "No per-lead fee", own: "Yes", anchor: "seo" },
@@ -44,7 +44,7 @@ const faqs: Faq[] = [
   },
   {
     q: "How much do painting leads cost?",
-    a: "Third-party estimates put shared Angi leads at about $15 to $85. Thumbtack runs about $25 to $75 for many trades. Google Local Services Ads average about $48 per lead for painters. Google Search Ads run higher, about $174 median in one 2026 benchmark. Your market will differ.",
+    a: "Third-party estimates put shared Angi leads at about $15 to $85. Thumbtack runs about $25 to $75 for many trades. Google Local Services Ads run about $48 per lead for painters (median). Google Search Ads run higher, about $174 median in one 2026 benchmark. Your market will differ.",
   },
   {
     q: "What is AEO?",
@@ -52,15 +52,11 @@ const faqs: Faq[] = [
   },
 ];
 
-const articleLd = {
-  "@context": "https://schema.org",
-  "@type": "Article",
+const articleLd = buildArticleLd({
+  path,
   headline: "How to get painting leads: the best free and paid strategies",
-  author: { "@id": orgId },
-  publisher: { "@id": orgId },
-  dateModified: site.lastReviewed,
-  mainEntityOfPage: `${site.url}${path}`,
-};
+  description: metadata.description as string,
+});
 
 const fmtDate = (d: string) =>
   new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }).format(new Date(d));
@@ -94,10 +90,15 @@ export default function PaintingLeadsPage() {
               Angi, HomeAdvisor, Thumbtack, Google ads, agencies, SEO and AEO. Compared on how you pay, whether leads are
               shared, and what you keep when you stop.
             </p>
-            <p className="hero-fade text-small text-graphite lg:col-span-4 lg:col-start-9" style={{ "--i": 5 } as React.CSSProperties}>
-              Found this page on Google? That&rsquo;s the demonstration.{" "}
-              <a className="tlink text-ink" href="#found">See how this site got found ↓</a>
-            </p>
+            <div className="hero-fade grid content-start gap-4 lg:col-span-4 lg:col-start-9" style={{ "--i": 5 } as React.CSSProperties}>
+              <p className="text-small text-graphite">
+                Found this page on Google? That&rsquo;s the demonstration.{" "}
+                <a className="tlink text-ink" href="#found">See how this site got found ↓</a>
+              </p>
+              <p>
+                <ButtonLink href={site.bookingUrl} target="_blank" rel="noopener">Book a call about your leads</ButtonLink>
+              </p>
+            </div>
           </div>
         </Container>
       </section>
@@ -195,7 +196,7 @@ export default function PaintingLeadsPage() {
             <h3 id="lsa" className="scroll-mt-24">Google Local Services Ads</h3>
             <p>
               Local Services Ads sit at the top of many &ldquo;painters near me&rdquo; searches, with a Google badge.
-              You pay per lead (a call or message), not per click. One 2026 benchmark puts painters at about $48 per
+              You pay per lead (a call or message), not per click. One 2026 benchmark puts the median for painters at about $48 per
               lead.<Cite id="webtonic" /> Reviews affect how often you show. One more reason the free work matters.
             </p>
 
@@ -218,14 +219,14 @@ export default function PaintingLeadsPage() {
               <li>Are they promising rankings? Nobody can guarantee a position on Google.</li>
             </ul>
 
-            <h2 id="free">The free (owned) channels</h2>
+            <h2 id="free">Free painting leads: the channels you own</h2>
 
             <h3 id="seo" className="scroll-mt-24">SEO and your Google Business Profile</h3>
             <p>
               Google ranks local results on relevance, distance and prominence.<Cite id="googleLocalRanking" /> A page for
               each service and area makes you relevant. A complete profile and steady reviews make you prominent. No
               per-lead cost. No shared leads. The trade-off is time: months, not days. Here&rsquo;s{" "}
-              <Link href={nav.painterWebsites.href}>exactly what to do for free painting leads</Link>.
+              <Link href={nav.painterWebsites.href}>how a website for your painting company brings in leads</Link>.
             </p>
 
             <h3 id="aeo" className="scroll-mt-24">AEO: showing up in AI answers</h3>
@@ -272,7 +273,7 @@ export default function PaintingLeadsPage() {
                 <span data-reveal="draw-y" className="absolute inset-0 bg-tape" />
               </span>
               {[
-                ["Mapped the searches", "One target search per page: “professional painters papillion”, “exterior painting cost”, “painting leads for free” and this one."],
+                ["Mapped the searches", "One target search per page: “painters papillion ne”, “exterior painting cost papillion ne”, “websites for painting companies” and this one."],
                 ["Answered them properly", "Each page opens with a direct answer. It cites its numbers and links to the others."],
                 ["Built it to be read", "Real text in the HTML, fast on a phone, and structured data on every page."],
                 ["Stayed honest", "No fake reviews. No invented address. A plain statement that it's a referral service."],

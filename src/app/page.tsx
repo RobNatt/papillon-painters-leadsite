@@ -11,12 +11,12 @@ import { TrustBar } from "@/components/trust-bar";
 import { ButtonLink, Container, SectionHead } from "@/components/ui";
 import { ZoomImage } from "@/components/zoom-image";
 import { images } from "@/content/images";
-import { nav, services } from "@/lib/site";
+import { nav, services, site } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: { absolute: "Professional Painters in Papillion, NE | Free Quotes" },
+  title: { absolute: "Painters in Papillion, NE | Free Referral, Not a Contractor" },
   description:
-    "Get a free quote from a professional painter in Papillion, Nebraska. Tell us about your interior or exterior job once and we pass it to one local painter. Referral service, not a contractor.",
+    "Free referral service, not a contractor. Describe your interior or exterior job once and one independent painter in Papillion, NE contacts you with a quote.",
   alternates: { canonical: "/" },
 };
 
@@ -54,12 +54,19 @@ const faqs: Faq[] = [
 const serviceLd = {
   "@context": "https://schema.org",
   "@type": "Service",
+  "@id": `${site.url}/#homeowner-referral`,
+  url: `${site.url}/`,
   name: "Painter referral service in Papillion, NE",
   serviceType: "Referral to independent residential painters",
   provider: { "@id": orgId },
-  areaServed: { "@type": "City", name: "Papillion, Nebraska" },
+  audience: { "@type": "Audience", audienceType: "Homeowners" },
+  areaServed: {
+    "@type": "City",
+    name: "Papillion",
+    containedInPlace: { "@type": "AdministrativeArea", name: "Sarpy County, Nebraska" },
+  },
   description:
-    "Free referral service: homeowners in Papillion describe their painting job once, and the request is passed to one independent local painter who provides the quote and performs the work.",
+    "Free referral service: homeowners in Papillion describe their painting job once, and the request is passed to one independent local painter who provides the quote and performs the work. Papillion Painters does not paint.",
   offers: { "@type": "Offer", price: "0", priceCurrency: "USD", description: "Free for homeowners" },
 };
 

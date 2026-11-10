@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { FaqList, type Faq } from "@/components/faq";
-import { breadcrumbLd, JsonLd, orgId } from "@/components/json-ld";
+import { breadcrumbLd, JsonLd, articleLd as buildArticleLd } from "@/components/json-ld";
 import { PageTransition } from "@/components/page-transition";
 import { ZoomImage } from "@/components/zoom-image";
 import { QuoteForm } from "@/components/quote-form";
@@ -10,14 +10,15 @@ import { EstimateStudio } from "@/components/studio/estimate-studio";
 import { ButtonLink, Container, HeroHeadline, SectionHead } from "@/components/ui";
 import { images } from "@/content/images";
 import { costSources } from "@/lib/estimate";
+import { pageDates } from "@/lib/page-dates";
 import { nav, site } from "@/lib/site";
 
 const path = nav.cost.href;
 
 export const metadata: Metadata = {
-  title: { absolute: "Exterior Painting Cost in Papillion, NE (2026) | Interior Prices Too" },
+  title: { absolute: "Exterior Painting Cost in Papillion & Omaha, NE | Interior Too" },
   description:
-    "What exterior and interior painting costs in Papillion, Nebraska: published price ranges, what drives the price, and a free photo color visualizer that emails you a planning estimate.",
+    "Exterior and interior house painting cost in Papillion and Omaha, NE: published price ranges, what moves the price, and a free estimate and color tool.",
   alternates: { canonical: path },
 };
 
@@ -25,7 +26,7 @@ export const metadata: Metadata = {
 function Cite({ id, n }: { id: (typeof costSources)[number]["id"]; n: number }) {
   return (
     <sup>
-      <a href={`#source-${id}`} className="ml-0.5 font-mono text-[0.7em] no-underline" aria-label={`Source ${n}`}>
+      <a href={`#source-${id}`} className="-my-3 ml-0.5 inline-block px-1 py-3 font-mono text-[0.8em] no-underline" aria-label={`Source ${n}`}>
         [{n}]
       </a>
     </sup>
@@ -34,7 +35,7 @@ function Cite({ id, n }: { id: (typeof costSources)[number]["id"]; n: number }) 
 
 /** Whole-job totals on one shared dollar axis. One series, so one hue and direct labels. */
 const ranges = [
-  { label: "Exterior repaint, typical home", low: 1819, high: 4551, avg: 3178, cite: "nerdwallet" as const, n: 1 },
+  { label: "Exterior repaint, typical home", low: 1800, high: 4500, avg: 3177, cite: "nerdwallet" as const, n: 1 },
   { label: "Interior, whole house", low: 1000, high: 3000, avg: 2021, cite: "nerdwallet" as const, n: 1, note: "“just under $1,000 to over $3,000”" },
 ];
 const AXIS_MAX = 5000;
@@ -42,7 +43,7 @@ const AXIS_MAX = 5000;
 const faqs: Faq[] = [
   {
     q: "How much does exterior painting cost?",
-    a: "A typical professional exterior paint job costs about $1,800 to $4,550 nationally. The average is around $3,180 (Angi data reported by NerdWallet). By painted surface, HomeWyse estimates about $2.20 to $4.37 per square foot. Two stories, wood siding and heavy scraping push it up.",
+    a: "A typical professional exterior paint job costs about $1,800 to $4,500 nationally. The average is about $3,177 (Angi data reported by NerdWallet). By painted surface, HomeWyse estimates about $2.20 to $4.37 per square foot. Two stories, wood siding and heavy scraping push it up.",
   },
   {
     q: "How much does it cost to paint a room?",
@@ -62,17 +63,13 @@ const faqs: Faq[] = [
   },
 ];
 
-const articleLd = {
-  "@context": "https://schema.org",
-  "@type": "Article",
-  headline: "Exterior painting cost in Papillion, NE, plus interior prices",
+const articleLd = buildArticleLd({
+  path,
+  headline: "Exterior painting cost in Papillion and Omaha, NE, plus interior prices",
+  description: metadata.description as string,
   about: ["Exterior painting cost", "Interior painting cost", "Papillion, Nebraska"],
-  author: { "@id": orgId },
-  publisher: { "@id": orgId },
-  dateModified: site.lastReviewed,
-  mainEntityOfPage: `${site.url}${path}`,
   citation: costSources.map((s) => s.url),
-};
+});
 
 export default function CostPage() {
   return (
@@ -84,7 +81,13 @@ export default function CostPage() {
             <nav aria-label="Breadcrumb" className="label hero-fade text-graphite">
               <Link className="tlink" href="/">Home</Link> <span aria-hidden="true">/</span> Painting costs
             </nav>
-            <HeroHeadline lines={["Exterior painting", "cost in Papillion,", "and interior too."]} className="text-h1 wdth-112" />
+            <p className="label hero-fade -mt-4 text-graphite">
+              Updated{" "}
+              <time dateTime={pageDates[path].updated}>
+                {new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" }).format(new Date(pageDates[path].updated))}
+              </time>
+            </p>
+            <HeroHeadline lines={["Exterior painting", "cost in Papillion", "& Omaha, NE, and", "interior too."]} className="text-h1 wdth-112" />
             <p className="hero-fade max-w-[44ch] text-lead text-graphite" style={{ "--i": 3 } as React.CSSProperties}>
               Published price ranges and what moves them. Plus a free tool that tries colors on your room and emails you
               an estimate.
@@ -93,7 +96,7 @@ export default function CostPage() {
             <div className="hero-fade grid gap-3 border-l-4 border-tape bg-chalk p-6" style={{ "--i": 4 } as React.CSSProperties}>
               <p className="label text-graphite">Short answer</p>
               <p>
-                A typical exterior repaint costs about <strong>$1,800 to $4,550</strong>. The average is about $3,180.
+                A typical exterior repaint costs about <strong>$1,800 to $4,500</strong>. The average is about $3,177.
                 <Cite id="nerdwallet" n={1} /> Interior painting runs about <strong>$2 to $6 per square foot</strong>.
                 <Cite id="angi-interior" n={2} /> A whole-house interior averages about $2,020.<Cite id="nerdwallet" n={1} />{" "}
                 These are national figures. A Papillion painter&rsquo;s on-site quote is the real number.
@@ -147,7 +150,7 @@ export default function CostPage() {
                 </div>
               ))}
             </div>
-            <div aria-hidden="true" className="flex justify-between border-t border-line pt-2 font-mono text-[0.7rem] text-graphite">
+            <div aria-hidden="true" className="flex justify-between border-t border-line pt-2 font-mono text-[0.75rem] text-graphite">
               <span>$0</span>
               <span>$1,000</span>
               <span>$2,000</span>
