@@ -900,3 +900,25 @@ html.motion-ok [data-unveil-bg],
 html.motion-ok .marquee-track {
   will-change: transform;
 }
+/* Home hero sequence: everything the scrubbed timeline scales, moves or fades
+ * gets a layer too. Without it, each scroll frame repaints the full-screen
+ * dark overlay, the whole hero (form included) and the statement with its
+ * large blurred text-shadow, which is what made the sequence choppy. */
+html.motion-ok [data-unveil-dark] {
+  will-change: opacity;
+}
+html.motion-ok [data-unveil-hero],
+html.motion-ok .hero-unveil .hero-line,
+html.motion-ok [data-unveil-fade],
+html.motion-ok [data-unveil-statement],
+html.motion-ok .unveil-line {
+  will-change: transform, opacity;
+}
+/* While the hero is pinned, the header would re-blur the moving photo under
+ * it on every frame. Use a near-solid background for that stretch instead. */
+html.unveil-pinned body > header,
+html.unveil-pinned header.sticky {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  background-color: rgb(236 237 240 / 0.97);
+}

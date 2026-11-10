@@ -53,7 +53,7 @@ export function initHeroUnveil({ lenis, fine, splitLines }: { lenis: Lenis | nul
   let split: SplitText | null = null;
   let statementLines: HTMLElement[] = [statement];
   if (splitLines) {
-    split = SplitText.create(statement, { type: "lines", mask: "lines" });
+    split = SplitText.create(statement, { type: "lines", mask: "lines", linesClass: "unveil-line" });
     statementLines = split.lines as HTMLElement[];
   }
 
@@ -135,6 +135,8 @@ export function initHeroUnveil({ lenis, fine, splitLines }: { lenis: Lenis | nul
       invalidateOnRefresh: true,
       onRefresh: setSpacer,
       onUpdate: (self) => setActive(self.progress > 0.3 && self.progress < 0.64),
+      // Drops the header blur while pinned (see globals.css).
+      onToggle: (self) => document.documentElement.classList.toggle("unveil-pinned", self.isActive),
       // A jump past either end (anchor links, "Get a free quote" in the header)
       // snaps to the final state, so the scrub never replays the dark stage
       // while the hero isn't pinned.
@@ -167,6 +169,7 @@ export function initHeroUnveil({ lenis, fine, splitLines }: { lenis: Lenis | nul
     .set({}, {}, 1);
 
   return () => {
+    document.documentElement.classList.remove("unveil-pinned");
     setActive(false);
     window.removeEventListener("pointermove", onPointer);
     lenis?.off("scroll", onFirstScroll);
