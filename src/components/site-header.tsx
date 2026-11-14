@@ -31,6 +31,7 @@ export function SiteHeader() {
           <Link className="tlink tap" href="/#how-it-works">How it works</Link>
           <Link className="tlink tap" href={nav.cost.href}>Costs &amp; estimator</Link>
           <Link className="tlink tap" href="/#faq">FAQ</Link>
+          <Link className="tlink tap" href="/blog">Guides</Link>
           <Link className="tlink tap" href={nav.painterWebsites.href}>For painters</Link>
           <Link href="/#quote" className="btn btn-primary min-h-11 px-5 py-2.5 text-small" data-magnetic="">
             Get a free quote
@@ -47,6 +48,7 @@ export function SiteHeader() {
             <Link className="px-3 py-3 font-medium" href="/#how-it-works">How it works</Link>
             <Link className="px-3 py-3 font-medium" href={nav.cost.href}>Costs &amp; estimator</Link>
             <Link className="px-3 py-3 font-medium" href="/#faq">FAQ</Link>
+            <Link className="px-3 py-3 font-medium" href="/blog">Guides</Link>
             <Link className="px-3 py-3 font-medium" href={nav.painterWebsites.href}>For painters</Link>
             <Link className="btn btn-primary mt-2" href="/#quote">Get a free quote</Link>
           </nav>

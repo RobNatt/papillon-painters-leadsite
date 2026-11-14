@@ -51,6 +51,7 @@ export function SiteFooter() {
           <Link className="tlink tap justify-self-start" href={nav.cost.href}>Interior &amp; exterior painting costs</Link>
           <Link className="tlink tap justify-self-start" href={`${nav.cost.href}#estimator`}>Room color visualizer &amp; estimate</Link>
           <Link className="tlink tap justify-self-start" href="/#quote">Request a free quote</Link>
+          <Link className="tlink tap justify-self-start" href="/blog">House painting guides</Link>
         </nav>
         <nav aria-label="Painting companies" className="grid content-start gap-0 text-small md:col-span-3">
           <p className="label mb-2 text-graphite">Painting companies</p>

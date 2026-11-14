@@ -20,4 +20,9 @@ export type RankingEntry = {
 
 export const launchDate = "2026-11-04";
 
-export const rankingLog: RankingEntry[] = [];
+export const rankingLog: RankingEntry[] = [
+  // Search Console, 28 days to 11 Nov 2026 (pulled 14 Nov). Small numbers: the site is new.
+  { date: "2026-11-11", query: "painting services near me", position: 8.2, clicks: 0, impressions: 4, note: "Searchers near Papillion" },
+  { date: "2026-11-11", query: "house painter near me", position: 9.8, clicks: 0, impressions: 6, note: "Searchers near Papillion" },
+  { date: "2026-11-11", query: "residential painter near me", position: 10.4, clicks: 0, impressions: 5, note: "Searchers near Papillion" },
+];
